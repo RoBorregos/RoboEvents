@@ -6,6 +6,9 @@ import {
   type DefaultSession,
 } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import GitHubProvider, {GithubProfile, GithubEmail} from "next-auth/providers/github";
+import type { OAuthConfig } from "next-auth/providers";
+
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 
@@ -19,15 +22,17 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      organizations: string;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    // ...other properties
+    // role: UserRole;
+    organizations: string;
+  }
 }
 
 /**
@@ -42,6 +47,7 @@ export const authOptions: NextAuthOptions = {
       user: {
         ...session.user,
         id: user.id,
+        organizations: user.organizations,
       },
     }),
   },
@@ -50,6 +56,20 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
+    }),
+    GitHubProvider({
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+      // Override profile to include org link to validate user is part of the org
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name ?? profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+          organizations: profile.organizations_url,
+        }
+      },
     }),
     /**
      * ...add more providers here.

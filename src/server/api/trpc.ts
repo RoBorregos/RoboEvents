@@ -27,6 +27,10 @@ type CreateContextOptions = {
   session: Session | null;
 };
 
+interface Meta {
+  role?: "authenticated" | "communityMember" | "organizationMember" | "admin";
+}
+
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
  * it from here.
@@ -69,19 +73,22 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
  * errors on the backend.
  */
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
-});
+const t = initTRPC
+  .context<typeof createTRPCContext>()
+  .meta<Meta>()
+  .create({
+    transformer: superjson,
+    errorFormatter({ shape, error }) {
+      return {
+        ...shape,
+        data: {
+          ...shape.data,
+          zodError:
+            error.cause instanceof ZodError ? error.cause.flatten() : null,
+        },
+      };
+    },
+  });
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
@@ -107,10 +114,39 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  const role = await updateRole(ctx.session.user.email, prisma);
+
+  if (meta?.role === "admin" && role.role !== "admin") {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Expected admin role",
+    });
+  } else if (
+    meta?.role === "organizationMember" &&
+    role.role !== "organizationMember" &&
+    role.role !== "admin"
+  ) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Expected organizationMember role or higher",
+    });
+  } else if (
+    meta?.role === "communityMember" &&
+    role.role !== "communityMember" &&
+    role.role !== "organizationMember" &&
+    role.role !== "admin"
+  ) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Expected communityMember role or higher",
+    });
+  }
+
   return next({
     ctx: {
       // infers the `session` as non-nullable
@@ -128,3 +164,56 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+// Custom procedures
+
+export const communityProcedure = protectedProcedure.meta({
+  role: "communityMember",
+});
+
+export const organizationProcedure = protectedProcedure.meta({
+  role: "organizationMember",
+});
+
+export const adminProcedure = protectedProcedure.meta({
+  role: "admin",
+});
+
+const updateRole = async (
+  email: string | null | undefined,
+  prismaDB: typeof prisma
+) => {
+  if (email) {
+    const isAdmin = await prismaDB.admin.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (isAdmin) {
+      return {
+        role: "admin",
+      };
+    }
+
+    const isOrganizationMember = await prismaDB.organizationMember.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (isOrganizationMember) {
+      return {
+        role: "organizationMember",
+      };
+    }
+
+    // Implement auth for github organization members
+
+    // Implement auth for community members
+  }
+  
+  return {
+    role: "authenticated",
+  };
+};

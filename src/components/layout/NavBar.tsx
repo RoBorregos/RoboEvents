@@ -6,6 +6,7 @@ import { useState } from "react";
 // Change logos and colors.
 // Make current page be highlighted in the navbar.
 
+
 const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
   const { data: sessionData } = useSession();
 
@@ -31,12 +32,12 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                   className="block h-6 w-6"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   stroke="currentColor"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
                   />
                 </svg>
@@ -47,12 +48,12 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                   className="h-6 w-6"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   stroke="currentColor"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
@@ -74,7 +75,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                   <a
                     href={route.path}
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                    id={route.name}
+                    key={route.name}
                   >
                     {route.name}
                   </a>
@@ -130,6 +131,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
               <a
                 href={route.path}
                 className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                key={route.name}
               >
                 {route.name}
               </a>
