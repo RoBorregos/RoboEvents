@@ -88,6 +88,7 @@ const t = initTRPC
         },
       };
     },
+    defaultMeta: { role: "authenticated"}
   });
 
 /**
@@ -119,17 +120,17 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const role = await updateRole(ctx.session.user.email, prisma);
+  const role = ctx.session.user.role;
 
-  if (meta?.role === "admin" && role.role !== "admin") {
+  if (meta?.role === "admin" && role !== "admin") {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Expected admin role",
     });
   } else if (
     meta?.role === "organizationMember" &&
-    role.role !== "organizationMember" &&
-    role.role !== "admin"
+    role !== "organizationMember" &&
+    role !== "admin"
   ) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -137,9 +138,9 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
     });
   } else if (
     meta?.role === "communityMember" &&
-    role.role !== "communityMember" &&
-    role.role !== "organizationMember" &&
-    role.role !== "admin"
+    role !== "communityMember" &&
+    role !== "organizationMember" &&
+    role !== "admin"
   ) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -212,7 +213,7 @@ const updateRole = async (
 
     // Implement auth for community members
   }
-  
+
   return {
     role: "authenticated",
   };

@@ -6,9 +6,11 @@ import { useState } from "react";
 // Change logos and colors.
 // Make current page be highlighted in the navbar.
 
-
 const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
   const { data: sessionData } = useSession();
+  
+  const userImage = (sessionData?.user?.image) ? sessionData.user.image : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80";
+
 
   const [closed, setClosed] = useState(true); // State of mobile menu
 
@@ -84,40 +86,44 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
             </div>
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+            {sessionData ? (
+              <div className="group/profile relative ml-3">
+                <div>
+                  <button
+                    type="button"
+                    className="flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                    id="user-menu-button"
+                  >
+                    <span className="sr-only">Open user menu</span>
+                    <img
+                      className="h-8 w-8 rounded-full"
+                      src={userImage}
+                      alt=""
+                    />
+                  </button>
+                </div>
 
-            {/* <!-- Profile dropdown --> */}
-            <div className="group/profile relative ml-3">
-              <div>
-                <button
-                  type="button"
-                  className=" flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                  id="user-menu-button"
-                >
-                  <span className="sr-only">Open user menu</span>
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                    alt=""
-                  />
-                </button>
-              </div>
-
-              {/* <!--
+                {/* <!--
             Dropdown menu, show/hide based on menu state.
           --> */}
-              <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right scale-0 rounded-md bg-white py-1 opacity-0 shadow-lg ring-1 ring-black ring-opacity-5 duration-200 focus:outline-none group-focus-within/profile:scale-100 group-focus-within/profile:opacity-100">
-                {/* <!-- Active: "bg-gray-100", Not Active: "" --> */}
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700">
-                  Your Profile
-                </a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700">
-                  Settings
-                </a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700">
-                  Sign out
-                </a>
+                <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right scale-0 rounded-md bg-white py-1 opacity-0 shadow-lg ring-1 ring-black ring-opacity-5 duration-200 focus:outline-none group-focus-within/profile:scale-100 group-focus-within/profile:opacity-100">
+                  {/* <!-- Active: "bg-gray-100", Not Active: "" --> */}
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700">
+                    Your Profile
+                  </a>
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700" onClick={() => void signOut()}>
+                    Sign out
+                  </a>
+                </div>
               </div>
-            </div>
+            ) : (
+              <button
+                onClick={() => void signIn()}
+                className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-slate-600 hover:text-white duration-100"
+              >
+                Sign in
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default function Home() {
         <div>
           <p>
             Signed in as {session?.user.email}. Info: {session.user.image}.{" "}
-            {session.expires}. {session.user.name}.
+            {session.expires}. {session.user.name}. {session.user.organizations}
           </p>
           <button onClick={() => signOut()}>Sign out</button>
         </div>

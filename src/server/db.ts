@@ -12,4 +12,6 @@ export const prisma =
       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
 
+export type Prisma = typeof prisma;
+
 if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

@@ -5,12 +5,12 @@ import {
   type NextAuthOptions,
   type DefaultSession,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
-import GitHubProvider, {GithubProfile, GithubEmail} from "next-auth/providers/github";
-import type { OAuthConfig } from "next-auth/providers";
+import GitHubProvider, { GithubProfile } from "next-auth/providers/github";
+import AzureADProvider from "next-auth/providers/azure-ad";
 
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
+import { updateRole } from "~/server/AuthRoles";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -22,7 +22,8 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      organizations: string;
+      organizations?: string;
+      role?: string;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -30,8 +31,8 @@ declare module "next-auth" {
 
   interface User {
     // ...other properties
-    // role: UserRole;
-    organizations: string;
+    role?: string;
+    organizations?: string;
   }
 }
 
@@ -41,35 +42,59 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  events: {
+    signIn: async (event) => {
+      // Compute role and update the user just once, when signing in.
+      if (event.user.email) {
+        await prisma.user.update({
+          where: {
+            email: event.user.email,
+          },
+          data: {
+            role: await updateRole(event.user.email, prisma),
+          },
+        });
+      }
+    },
+  },
+
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-        organizations: user.organizations,
-      },
-    }),
+    session: async ({ session, user }) => {
+      const updatedSession = {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+          organizations: user.organizations,
+          role: user.role,
+        },
+      };
+      // See information stored in session
+      // console.log("After updating the session:", updatedSession);
+
+      return updatedSession;
+    },
   },
   adapter: PrismaAdapter(prisma),
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
     GitHubProvider({
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
       // Override profile to include org link to validate user is part of the org
-      profile(profile) {
+      profile(profile: GithubProfile) {
         return {
           id: profile.id.toString(),
           name: profile.name ?? profile.login,
           email: profile.email,
           image: profile.avatar_url,
           organizations: profile.organizations_url,
-        }
+        };
       },
+    }),
+    AzureADProvider({
+      clientId: env.AZURE_AD_CLIENT_ID,
+      clientSecret: env.AZURE_AD_CLIENT_SECRET,
+      tenantId: env.AZURE_AD_TENANT_ID,
     }),
     /**
      * ...add more providers here.
