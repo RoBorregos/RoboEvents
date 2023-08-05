@@ -51,21 +51,56 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    username      String?   @unique
-    emailVerified DateTime?
-    image         String    @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
-    organizations String?
-    role          String?
-    description   String?
-    accounts      Account[]
-    sessions      Session[]
+    id              String    @id @default(cuid())
+    name            String?
+    email           String?   @unique
+    username        String?   @unique
+    emailVerified   DateTime?
+    image           String    @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
+    organizations   String?
+    role            String?
+    description     String?
+    accounts        Account[]
+    sessions        Session[]
+    eventsOwned     Event[]   @relation("owned")
+    eventsConfirmed Event[]   @relation("confirmed")
+    // Comment       Comment[]
+}
+
+model Event {
+    id          String   @id @default(cuid())
+    name        String
+    ics         String
+    owners      User[]   @relation("owned")
+    description String
+    lastUpdate  DateTime @updatedAt
+    image       String
+    location    String
+    visibility  String
+    confirmed   User[]   @relation("confirmed")
+    tags        Tag[]
+    dates       Date[]
+    // user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId      String
+    // comment     Comment[]
+}
+
+model Date {
+    id      String   @id @default(cuid())
+    date    DateTime
+    eventId String
+    Event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model Admin {
     email String @unique
+}
+
+model Tag {
+    id       String  @id @default(cuid())
+    name     String
+    tagColor String
+    events   Event[]
 }
 
 model OrganizationMember {
@@ -79,3 +114,14 @@ model VerificationToken {
 
     @@unique([identifier, token])
 }
+
+// Later implementation: 
+// model Comment {
+//     id        String   @id @default(cuid())
+//     text      String
+//     createdAt DateTime @default(now())
+//     eventId   String
+//     Event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+//     userId    String
+//     User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
