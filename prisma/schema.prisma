@@ -54,10 +54,12 @@ model User {
     id            String    @id @default(cuid())
     name          String?
     email         String?   @unique
+    username      String?   @unique
     emailVerified DateTime?
-    image         String?
+    image         String    @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
     organizations String?
     role          String?
+    description   String?
     accounts      Account[]
     sessions      Session[]
 }

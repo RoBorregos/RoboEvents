@@ -1,16 +1,12 @@
 import { signOut, signIn, useSession } from "next-auth/react";
+import ValidImage from "~/components/general/ValidImage";
 import { useState } from "react";
 
 // TODO:
-// Add sign in button and profile picture only when user is logged in.
-// Change logos and colors.
 // Make current page be highlighted in the navbar.
 
 const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
   const { data: sessionData } = useSession();
-  
-  const userImage = (sessionData?.user?.image) ? sessionData.user.image : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80";
-
 
   const [closed, setClosed] = useState(true); // State of mobile menu
 
@@ -66,7 +62,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
             <div className="flex flex-shrink-0 items-center">
               <img
                 className="h-8 w-auto"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                src="https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Logo_blanco.png"
                 alt="Your Company"
               />
             </div>
@@ -95,10 +91,10 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                     id="user-menu-button"
                   >
                     <span className="sr-only">Open user menu</span>
-                    <img
-                      className="h-8 w-8 rounded-full"
-                      src={userImage}
+                    <ValidImage
+                      src={sessionData.user.image}
                       alt=""
+                      className="h-8 w-8 rounded-full"
                     />
                   </button>
                 </div>
@@ -108,10 +104,17 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
           --> */}
                 <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right scale-0 rounded-md bg-white py-1 opacity-0 shadow-lg ring-1 ring-black ring-opacity-5 duration-200 focus:outline-none group-focus-within/profile:scale-100 group-focus-within/profile:opacity-100">
                   {/* <!-- Active: "bg-gray-100", Not Active: "" --> */}
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700">
+                  <a
+                    href="/user"
+                    className="block px-4 py-2 text-sm text-gray-700"
+                  >
                     Your Profile
                   </a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700" onClick={() => void signOut()}>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700"
+                    onClick={() => void signOut()}
+                  >
                     Sign out
                   </a>
                 </div>
@@ -119,7 +122,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
             ) : (
               <button
                 onClick={() => void signIn()}
-                className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-slate-600 hover:text-white duration-100"
+                className="rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-gray-300 duration-100 hover:bg-slate-600 hover:text-white"
               >
                 Sign in
               </button>
