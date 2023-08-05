@@ -87,7 +87,8 @@ model Event {
 
 model Date {
     id      String   @id @default(cuid())
-    date    DateTime
+    start   DateTime
+    end     DateTime
     eventId String
     Event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
