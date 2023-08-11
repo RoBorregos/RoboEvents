@@ -70,18 +70,16 @@ model User {
 model Event {
     id          String   @id @default(cuid())
     name        String
-    ics         String
     owners      User[]   @relation("owned")
     description String
     lastUpdate  DateTime @updatedAt
-    image       String
+    image       String   @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
     location    String
     visibility  String
     confirmed   User[]   @relation("confirmed")
     tags        Tag[]
     dates       Date[]
-    // user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId      String
+    rrule       String?
     // comment     Comment[]
 }
 
@@ -98,8 +96,7 @@ model Admin {
 }
 
 model Tag {
-    id       String  @id @default(cuid())
-    name     String
+    name     String  @id @unique
     tagColor String
     events   Event[]
 }

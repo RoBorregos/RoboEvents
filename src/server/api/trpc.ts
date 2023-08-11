@@ -28,7 +28,7 @@ type CreateContextOptions = {
 };
 
 interface Meta {
-  role?: "authenticated" | "communityMember" | "organizationMember" | "admin";
+  role?: "unauthenticated" | "authenticated" | "communityMember" | "organizationMember" | "admin";
 }
 
 /**
@@ -179,42 +179,3 @@ export const organizationProcedure = protectedProcedure.meta({
 export const adminProcedure = protectedProcedure.meta({
   role: "admin",
 });
-
-const updateRole = async (
-  email: string | null | undefined,
-  prismaDB: typeof prisma
-) => {
-  if (email) {
-    const isAdmin = await prismaDB.admin.findUnique({
-      where: {
-        email: email,
-      },
-    });
-
-    if (isAdmin) {
-      return {
-        role: "admin",
-      };
-    }
-
-    const isOrganizationMember = await prismaDB.organizationMember.findUnique({
-      where: {
-        email: email,
-      },
-    });
-
-    if (isOrganizationMember) {
-      return {
-        role: "organizationMember",
-      };
-    }
-
-    // Implement auth for github organization members
-
-    // Implement auth for community members
-  }
-
-  return {
-    role: "authenticated",
-  };
-};

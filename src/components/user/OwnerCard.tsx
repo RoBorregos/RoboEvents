@@ -6,7 +6,7 @@ import { useState } from "react";
 import { AiFillEdit, AiOutlineEdit } from "react-icons/ai";
 
 
-//TODO: improve styling, reize images in client side.
+// TODO: improve styling, reize images in client side and validate in server.
 
 const formStyle: UpdateUserStyle = {
   label: "text-white mr-2 align-middle flex items-center ",
@@ -28,7 +28,7 @@ const OwnerCard = ({ userid }: { userid: string }) => {
   const [updateProfile, setUpdateProfile] = useState(false);
 
   return (
-    <div className="items- flex flex-wrap rounded-md bg-highlight p-2 text-tertiary">
+    <div className="flex flex-wrap rounded-md bg-highlight p-2 text-tertiary">
       {user && !isLoading ? (
         <>
           <div className="basis-full md:basis-4/12">

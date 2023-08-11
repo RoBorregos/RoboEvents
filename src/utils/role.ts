@@ -1,3 +1,6 @@
+import { on } from "events";
+import { EventModel } from "~/zod/types";
+
 interface Roles {
   role: "admin" | "organizationMember" | "communityMember" | "authenticated";
 }
@@ -10,6 +13,28 @@ const communityMemberOrUpper = [
 ];
 const authenticatedOrUpper = [...communityMemberOrUpper, "authenticated"];
 
+const unauthenticatedOrUpper = [...authenticatedOrUpper, "unauthenticated"];
+
+interface RoleType {
+  [key: string]: string[];
+}
+
+const roleOrUpper: RoleType = {
+  admin: adminOrUpper,
+  organizationMember: organizationMemberOrUpper,
+  communityMember: communityMemberOrUpper,
+  authenticated: authenticatedOrUpper,
+  unauthenticated: unauthenticatedOrUpper,
+};
+
+const upperRole: RoleType = {
+  admin: adminOrUpper,
+  organizationMember: adminOrUpper,
+  communityMember: organizationMemberOrUpper,
+  authenticated: communityMemberOrUpper,
+  unauthenticated: authenticatedOrUpper,
+};
+
 // 1: allowed
 // 0: not allowed
 export const compareRole = (
@@ -17,24 +42,38 @@ export const compareRole = (
   userRole: string | undefined
 ) => {
   if (!userRole) return 0;
-  if (requiredRole === "admin" && adminOrUpper.includes(userRole)) {
-    return 1;
-  } else if (
-    requiredRole === "organizationMember" &&
-    organizationMemberOrUpper.includes(userRole)
-  ) {
-    return 1;
-  } else if (
-    requiredRole === "communityMember" &&
-    communityMemberOrUpper.includes(userRole)
-  ) {
-    return 1;
-  } else if (
-    requiredRole === "authenticated" &&
-    authenticatedOrUpper.includes(userRole)
-  ) {
-    return 1;
-  }
+  const t = roleOrUpper[requiredRole];
+
+  if (t && t.includes(userRole)) return 1;
 
   return 0;
+};
+
+export const onlyUpperRole = (
+  requiredRole: string,
+  userRole: string | undefined
+) => {
+  if (!userRole) return 0;
+  const t = upperRole[requiredRole];
+
+  if (t && t.includes(userRole)) return 1;
+
+  return 0;
+};
+
+type UserRole = {
+  role: string | null;
+}
+
+export const getHighestRole = (roles: UserRole[]) => {
+  let highestRole = "unauthenticated";
+
+  for (const role of roles) {
+    if (!role.role) continue;
+    if (onlyUpperRole(role.role, highestRole)) {
+      highestRole = role.role;
+    }
+  }
+
+  return highestRole;
 };

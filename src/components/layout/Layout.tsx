@@ -12,7 +12,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   let routes = [
     { name: "Home", path: "/" },
-    { name: "Add event", path: "/about" },
+    { name: "Add event", path: "/add-event" },
     { name: "About", path: "/about" },
   ];
 
