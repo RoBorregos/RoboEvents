@@ -1,33 +1,26 @@
 import { env } from "~/env.mjs";
 import { isImgUrl } from "~/utils/image";
 import { useEffect, useState } from "react";
+type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
-const ValidImage = ({
-  src,
-  alt,
-  className,
-}: {
-  src: string | undefined | null;
-  alt?: string;
-  className?: string;
-}) => {
+const ValidImage = ({ className, ...props }: ImageProps) => {
   const [imageUrl, setimageUrl] = useState(env.NEXT_PUBLIC_DEFAULT_IMAGE);
 
   useEffect(() => {
     const fetchImg = async () => {
-      if (src) {
-        const isValid = await isImgUrl(src);
+      if (props.src) {
+        const isValid = await isImgUrl(props.src);
         if (isValid) {
-          setimageUrl(src);
+          setimageUrl(props.src);
         } else {
-          console.log("Invalid image url:", src);
+          console.log("Invalid image url:", props.src);
         }
       }
     };
     fetchImg();
-  }, [src]);
+  }, [props.src]);
 
-  return <img className={`${className}`} src={imageUrl} alt={alt} />;
+  return <img className={`${className}`} {...props} src={imageUrl}/>;
 };
 
 export default ValidImage;

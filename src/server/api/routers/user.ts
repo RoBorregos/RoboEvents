@@ -110,4 +110,25 @@ export const userRouter = createTRPCRouter({
       });
       return user;
     }),
+
+    getAllUserId: protectedProcedure.query(async ({ ctx }) => {
+      const users = await ctx.prisma.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      });
+      
+      const leastData = users.map((user) => {
+        if (user.username){
+          return {id: user.id, info: user.username};
+        } else if (user.name){
+          return {id: user.id, info: user.name};
+        }
+        return {id: user.id, info: "Unnamed"};
+      });
+
+      return leastData;
+    }),
 });

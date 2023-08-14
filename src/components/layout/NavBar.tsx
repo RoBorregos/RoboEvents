@@ -92,7 +92,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                   >
                     <span className="sr-only">Open user menu</span>
                     <ValidImage
-                      src={sessionData.user.image}
+                      src={sessionData.user.image ?? ""}
                       alt=""
                       className="h-8 w-8 rounded-full"
                     />

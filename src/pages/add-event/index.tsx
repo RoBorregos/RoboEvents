@@ -9,8 +9,19 @@ import {
 } from "~/components/general/PageElements";
 import { compareRole } from "~/utils/role";
 
-import OwnerCard from "~/components/user/OwnerCard";
-import { CreateEvent } from "~/components/events/CreateEvent";
+import {
+  CreateEventForm,
+  CreateEventStyle,
+} from "~/components/events/CreateEventForm";
+import EventModify from "~/components/events/EventModify";
+
+const formStyle: CreateEventStyle = {
+  label: "text-white mr-2 align-middle flex items-center ",
+  field: "bg-white mr-2 text-secondary p-1 rounded-lg",
+  errorMsg: "text-red-500 bg-tertiary p-2 rounded-lg font-bold",
+  button: "bg-white text-secondary p-2 rounded-lg",
+  container: "bg-themebg w-full mt-2 mb-2 p-2 rounded-lg",
+};
 
 export default function Home() {
   const { data: session } = useSession();
@@ -22,8 +33,7 @@ export default function Home() {
         <PageTitle text="Create a new event" />
         {session ? (
           isAllowed ? (
-            // <OwnerCard userid={session.user.id} />
-            <CreateEvent />
+            <EventModify eventId=""/>
           ) : (
             <div>
               <p>No Access.</p>
@@ -34,7 +44,7 @@ export default function Home() {
         ) : (
           <div>
             <p>Not signed in</p>
-            <p>Sign in to view Create a new event.</p>
+            <p>Sign in to Create a new event.</p>
           </div>
         )}
       </PageBody>

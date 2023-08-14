@@ -16,6 +16,15 @@ export const utilRouter = createTRPCRouter({
       if (input) return await isImgUrl(input);
       return false;
     }),
+
+  getTags: publicProcedure.query(async ({ ctx }) => {
+    const tags = await ctx.prisma.tag.findMany({
+      select: {
+        name: true,
+      },
+    });
+    return tags;
+  }),
 });
 
 async function isImgUrl(url: string) {

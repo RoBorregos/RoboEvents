@@ -12,7 +12,6 @@ const communityMemberOrUpper = [
   "communityMember",
 ];
 const authenticatedOrUpper = [...communityMemberOrUpper, "authenticated"];
-
 const unauthenticatedOrUpper = [...authenticatedOrUpper, "unauthenticated"];
 
 interface RoleType {
@@ -33,6 +32,23 @@ const upperRole: RoleType = {
   communityMember: organizationMemberOrUpper,
   authenticated: communityMemberOrUpper,
   unauthenticated: authenticatedOrUpper,
+};
+
+const unauthenticatedOrLower = ["unauthenticated"];
+const authenticatedOrLower = [...unauthenticatedOrLower, "authenticated"];
+const communityMemberOrLower = [...authenticatedOrLower, "communityMember"];
+const organizationMemberOrLower = [
+  ...communityMemberOrLower,
+  "organizationMember",
+];
+const adminOrLower = [...organizationMemberOrLower, "admin"];
+
+export const roleOrLower: RoleType = {
+  admin: adminOrLower,
+  organizationMember: organizationMemberOrLower,
+  communityMember: communityMemberOrLower,
+  authenticated: authenticatedOrLower,
+  unauthenticated: unauthenticatedOrLower,
 };
 
 // 1: allowed
@@ -63,7 +79,7 @@ export const onlyUpperRole = (
 
 type UserRole = {
   role: string | null;
-}
+};
 
 export const getHighestRole = (roles: UserRole[]) => {
   let highestRole = "unauthenticated";

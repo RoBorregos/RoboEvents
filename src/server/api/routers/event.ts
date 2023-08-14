@@ -35,6 +35,7 @@ export const eventRouter = createTRPCRouter({
         include: {
           owners: true,
           tags: true,
+          confirmed: true,
         },
       });
 
