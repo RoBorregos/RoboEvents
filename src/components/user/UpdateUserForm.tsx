@@ -1,7 +1,8 @@
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import { updateUserSchema } from "../schemas/updateUser";
-import { ChangeEvent } from "react";
+import type { ChangeEvent } from "react";
 import { api } from "~/utils/api";
+import { twMerge } from "tailwind-merge";
 //TODO: Add client-side resize of profile image.
 
 export interface UpdateUserStyle {
@@ -31,7 +32,7 @@ export const UpdateUserForm = ({
 
   const mutation = api.user.updateProfile.useMutation({
     onSuccess: () => {
-      context.user.fullInfo.invalidate();
+      void context.user.fullInfo.invalidate();
       alert("Profile updated!");
     },
     onError: (error) => {
@@ -110,12 +111,12 @@ export const UpdateUserForm = ({
                     className={styles.field}
                     id="linkfield"
                     name="linkfield"
-                    onBlur={(e: ChangeEvent<HTMLInputElement>) => {
-                      setFieldValue("profilePicture", e.target.value, true);
+                    onBlur={async (e: ChangeEvent<HTMLInputElement>) => {
+                      await setFieldValue("profilePicture", e.target.value, true);
                     }}
                   />
                   <Field
-                    className={styles.field + " hidden"}
+                    className={twMerge("hidden", styles.field)}
                     id="profilePicture"
                     name="profilePicture"
                   />
@@ -124,7 +125,7 @@ export const UpdateUserForm = ({
                     type="file"
                     name="file"
                     accept="image/*"
-                    onChange={async (e) => {
+                    onChange={(e) => {
                       if (!e.target.files) return;
                       const file = e.target.files[0];
                       if (!file) return;
@@ -132,7 +133,7 @@ export const UpdateUserForm = ({
                       const reader = new FileReader();
                       reader.readAsDataURL(file);
                       reader.onloadend = async () => {
-                        setFieldValue("profilePicture", reader.result, true);
+                        await setFieldValue("profilePicture", reader.result, true);
                         if (changeImg && typeof reader.result == "string") {
                           changeImg(reader.result);
                         }

@@ -1,10 +1,8 @@
 import { useSession } from "next-auth/react";
 import Layout from "~/components/layout/Layout";
-import ValidImage from "~/components/general/ValidImage";
 
 import {
   PageBody,
-  PageSubtitle,
   PageTitle,
 } from "~/components/general/PageElements";
 

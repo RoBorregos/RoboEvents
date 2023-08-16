@@ -1,9 +1,9 @@
 import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
-import { CreateEventStyle, CreateEventForm } from "./CreateEventForm";
+import { type CreateEventStyle, CreateEventForm } from "./CreateEventForm";
 import { useState } from "react";
 import { AiFillEdit, AiOutlineEdit } from "react-icons/ai";
-import { RouterOutputs } from "~/utils/api";
+import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
 
 const formStyle: CreateEventStyle = {
@@ -65,7 +65,9 @@ const PageContent = ({
         </>
       );
     } else {
-      const tagText = event.confirmed.map((user) => user.username + ", ").slice(0, -2);
+      const tagText = event.confirmed
+        .map((user) => (user.username ?? user.name ?? user.id) + ", ")
+        .slice(0, -2);
       return (
         <div>
           <div className="flex flex-row items-center">

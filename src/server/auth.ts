@@ -5,7 +5,7 @@ import {
   type NextAuthOptions,
   type DefaultSession,
 } from "next-auth";
-import GitHubProvider, { GithubProfile } from "next-auth/providers/github";
+import GitHubProvider, { type GithubProfile } from "next-auth/providers/github";
 import AzureADProvider from "next-auth/providers/azure-ad";
 
 import { env } from "~/env.mjs";
@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    session: async ({ session, user }) => {
+    session: ({ session, user }) => {
       const updatedSession = {
         ...session,
         user: {

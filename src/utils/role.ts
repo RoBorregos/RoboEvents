@@ -1,9 +1,7 @@
-import { on } from "events";
-import { EventModel } from "~/zod/types";
 
-interface Roles {
-  role: "admin" | "organizationMember" | "communityMember" | "authenticated";
-}
+// interface Roles {
+//   role: "admin" | "organizationMember" | "communityMember" | "authenticated" | "unauthenticated";
+// }
 
 const adminOrUpper = ["admin"];
 const organizationMemberOrUpper = [...adminOrUpper, "organizationMember"];

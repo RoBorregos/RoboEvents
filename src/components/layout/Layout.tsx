@@ -10,7 +10,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
   title?: string;
   description?: string;
 }) => {
-  let routes = [
+  const routes = [
     { name: "Home", path: "/" },
     { name: "Add event", path: "/add-event" },
     { name: "About", path: "/about" },

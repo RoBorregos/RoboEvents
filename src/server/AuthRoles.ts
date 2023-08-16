@@ -1,5 +1,5 @@
-import { Prisma } from "./db";
-
+import type { Prisma } from "./db";
+import { z } from "zod";
 type GithubOrganization = {
   login: string;
   id: number;
@@ -15,6 +15,24 @@ type GithubOrganization = {
   description: string;
   [key: string]: any; // Index signature for additional properties
 };
+
+const expectedOrganizationSchema = z
+  .object({
+    login: z.string(),
+    id: z.number(),
+    node_id: z.string(),
+    url: z.string(),
+    repos_url: z.string(),
+    events_url: z.string(),
+    hooks_url: z.string(),
+    issues_url: z.string(),
+    members_url: z.string(),
+    public_members_url: z.string(),
+    avatar_url: z.string(),
+    description: z.string(),
+  })
+  .catchall(z.unknown())
+  .array();
 
 type GithubOrganizationList = GithubOrganization[];
 
@@ -79,11 +97,15 @@ const getUserOrganizations = async (organizations_url: string) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch organizations (${organizations_url}): ` + response.statusText);
+      throw new Error(
+        `Failed to fetch organizations (${organizations_url}): ` +
+          response.statusText
+      );
     }
 
     const data = await response.json();
-    return data as GithubOrganizationList;
+
+    return expectedOrganizationSchema.parse(data);
   } catch (error) {
     console.error("Error fetching organizations:", error);
     return [] as GithubOrganizationList;
@@ -101,7 +123,9 @@ const isCommunityMember = async (email: string, prisma: Prisma) => {
   });
 
   if (user?.accounts) {
-    const community = user.accounts.find((account) => account.provider === "azure-ad");
+    const community = user.accounts.find(
+      (account) => account.provider === "azure-ad"
+    );
     if (community) return true;
   }
 

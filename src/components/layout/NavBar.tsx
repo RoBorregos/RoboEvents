@@ -1,6 +1,7 @@
 import { signOut, signIn, useSession } from "next-auth/react";
 import ValidImage from "~/components/general/ValidImage";
 import { useState } from "react";
+import Link from "next/link";
 
 // TODO:
 // Make current page be highlighted in the navbar.
@@ -70,13 +71,13 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
               <div className="flex space-x-4">
                 {/* <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" --> */}
                 {routes.map((route) => (
-                  <a
+                  <Link
                     href={route.path}
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
                     key={route.name}
                   >
                     {route.name}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -104,19 +105,19 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
           --> */}
                 <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right scale-0 rounded-md bg-white py-1 opacity-0 shadow-lg ring-1 ring-black ring-opacity-5 duration-200 focus:outline-none group-focus-within/profile:scale-100 group-focus-within/profile:opacity-100">
                   {/* <!-- Active: "bg-gray-100", Not Active: "" --> */}
-                  <a
+                  <Link
                     href="/user"
                     className="block px-4 py-2 text-sm text-gray-700"
                   >
                     Your Profile
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="#"
                     className="block px-4 py-2 text-sm text-gray-700"
                     onClick={() => void signOut()}
                   >
                     Sign out
-                  </a>
+                  </Link>
                 </div>
               </div>
             ) : (
@@ -137,13 +138,13 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
           <div className="space-y-1 px-2 pb-3 pt-2">
             {/* <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" --> */}
             {routes.map((route) => (
-              <a
+              <Link
                 href={route.path}
                 className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
                 key={route.name}
               >
                 {route.name}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

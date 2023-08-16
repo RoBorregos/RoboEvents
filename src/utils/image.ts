@@ -17,9 +17,8 @@ export const resizeWrapper = (
   imgSrc: string,
   maxW: number,
   maxH: number,
-  square: boolean
 ) => {
-  const result = resizeImg(imgSrc, maxW, maxH, square);
+  const result = resizeImg(imgSrc, maxW, maxH);
   if (result === env.NEXT_PUBLIC_DEFAULT_IMAGE) {
     alert("There was an error resizing image. Setting default image.");
   }
@@ -30,7 +29,6 @@ export const resizeImg = (
   imgSrc: string,
   maxW: number,
   maxH: number,
-  square: boolean
 ) => {
   if (
     window.File &&
@@ -46,26 +44,8 @@ export const resizeImg = (
     const ctx = canvas.getContext("2d");
     if (!ctx) return env.NEXT_PUBLIC_DEFAULT_IMAGE;
 
-    let width = maxW;
-    let height = maxW;
-
-    // if (square) {
-    //   const newSize = Math.min(maxW, Math.min(img.width, img.height));
-    //   width = newSize;
-    //   height = newSize;
-    // } else {
-    //   if (width > height) {
-    //     if (width > maxW) {
-    //       height *= maxW / width;
-    //       width = maxW;
-    //     }
-    //   } else {
-    //     if (height > maxH) {
-    //       width *= maxH / height;
-    //       height = maxH;
-    //     }
-    //   }
-    // }
+    const width = maxW;
+    const height = maxW;
 
     console.log("w, h:", width, height);
     console.log("maxW, maxH:", maxW, maxH);

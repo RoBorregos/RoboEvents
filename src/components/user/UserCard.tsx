@@ -3,7 +3,6 @@ import type { AppRouter } from "~/server/api/root";
 import type { inferRouterOutputs } from "@trpc/server";
 import { PageSubtitle } from "~/components/general/PageElements";
 import ValidImage from "../general/ValidImage";
-import { Formik } from "formik";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 
@@ -28,50 +27,12 @@ const obtainedUser = (user: UserGetOutput | undefined) => {
 };
 
 const userFound = (user: UserGetOutput) => {
-  const content = user?.owner == true ? ownerCard(user) : generalCard(user);
+  const content = user?.owner == true ? ownerCard(user) : generalCard();
 
   return content;
 };
 
 const ownerCard = (user: UserGetOutput) => {
-  //                 <div className="m-2 flex flex-col justify-center rounded-lg bg-themebg p-2">
-  //                   {session.user.name && (
-  //                     <PageSubtitle
-  //                       className="text-center text-white"
-  //                       text={session.user.name}
-  //                     />
-  //                   )}
-
-  //                   <ValidImage
-  //                     className="rounded-full"
-  //                     src={session?.user.image}
-  //                   />
-  //                   {/* <input
-  //                     className="m-2"
-  //                     type="file"
-  //                     name="file"
-  //                     accept="image/*"
-  //                     onChange={async (e: ChangeEvent<HTMLInputElement>) => {
-  //                       if (!e.target.files) return;
-  //                       const file = e.target.files[0];
-  //                       if (!file) return;
-
-  //                       const reader = new FileReader();
-  //                       reader.readAsDataURL(file);
-  //                       reader.onloadend = async () => {
-  //                         setFieldValue("picUrl", reader.result);
-  //                       };
-  //                     }}
-  //                   /> */}
-  //                 </div>
-  //               </div>
-  //               <div className="basis-full md:basis-8/12">
-  //                 <p className="break-all">
-  //                   Signed in as {session?.user.email}. Info: {session.user.image}
-  //                   . {session.expires}. {session.user.name}.{" "}
-  //                   {session.user.organizations}
-  //                 </p>
-  //               </div>
   let name;
   if (user.name) {
     name = user.name;
@@ -90,51 +51,8 @@ const ownerCard = (user: UserGetOutput) => {
   );
 };
 
-const generalCard = (user: any) => {
+const generalCard = () => {
   return <p>General</p>;
 };
-
-// {/* <div className="flex flex-wrap rounded-md bg-highlight p-2 text-tertiary">
-//               <div className="basis-full md:basis-4/12">
-//                 <UserCard userid="clkrfxjk40000lpwso61b8mfc" />
-//                 <div className="m-2 flex flex-col justify-center rounded-lg bg-themebg p-2">
-//                   {session.user.name && (
-//                     <PageSubtitle
-//                       className="text-center text-white"
-//                       text={session.user.name}
-//                     />
-//                   )}
-
-//                   <ValidImage
-//                     className="rounded-full"
-//                     src={session?.user.image}
-//                   />
-//                   {/* <input
-//                     className="m-2"
-//                     type="file"
-//                     name="file"
-//                     accept="image/*"
-//                     onChange={async (e: ChangeEvent<HTMLInputElement>) => {
-//                       if (!e.target.files) return;
-//                       const file = e.target.files[0];
-//                       if (!file) return;
-
-//                       const reader = new FileReader();
-//                       reader.readAsDataURL(file);
-//                       reader.onloadend = async () => {
-//                         setFieldValue("picUrl", reader.result);
-//                       };
-//                     }}
-//                   /> */}
-//                 </div>
-//               </div>
-//               <div className="basis-full md:basis-8/12">
-//                 <p className="break-all">
-//                   Signed in as {session?.user.email}. Info: {session.user.image}
-//                   . {session.expires}. {session.user.name}.{" "}
-//                   {session.user.organizations}
-//                 </p>
-//               </div>
-//             </div> */}
 
 export default UserCard;

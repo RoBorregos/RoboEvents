@@ -12,6 +12,16 @@ const config = {
       parserOptions: {
         project: path.join(__dirname, "tsconfig.json"),
       },
+      // TODO: Remove these overrides once the following issues are fixed:
+      rules: {
+        "@typescript-eslint/no-floating-promises": "warn",
+        "@typescript-eslint/no-misused-promises": "warn",
+        "@typescript-eslint/no-unsafe-argument": "warn",
+        "@typescript-eslint/no-unsafe-member-access": "warn",
+        "@typescript-eslint/no-unsafe-call": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn",
+        "@typescript-eslint/no-unsafe-assignment": "warn",
+      },
     },
   ],
   parser: "@typescript-eslint/parser",

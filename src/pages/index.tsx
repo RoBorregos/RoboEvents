@@ -3,18 +3,11 @@ import Layout from "~/components/layout/Layout";
 
 import {
   PageBody,
-  PageSubtitle,
-  PageTitle,
 } from "~/components/general/PageElements";
 import { compareRole } from "~/utils/role";
-import EventModify from "~/components/events/EventModify";
 
 export default function Home() {
   const { data: session } = useSession();
-  const isAllowed = compareRole({
-    requiredRole: "organizationMember",
-    userRole: session?.user.role,
-  });
 
   return (
     <Layout>

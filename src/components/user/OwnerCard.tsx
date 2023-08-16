@@ -1,10 +1,9 @@
 import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
 import ValidImage from "../general/ValidImage";
-import { UpdateUserStyle, UpdateUserForm } from "./UpdateUserForm";
+import { type UpdateUserStyle, UpdateUserForm } from "./UpdateUserForm";
 import { useState } from "react";
 import { AiFillEdit, AiOutlineEdit } from "react-icons/ai";
-
 
 // TODO: improve styling, reize images in client side and validate in server.
 
@@ -18,12 +17,14 @@ const formStyle: UpdateUserStyle = {
 
 const OwnerCard = ({ userid }: { userid: string }) => {
   const { data: user, isLoading } = api.user.fullInfo.useQuery(userid, {
-    onSuccess: (user) => {setPicUrl(user?.image)},
+    onSuccess: (user) => {
+      setPicUrl(user?.image);
+    },
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
 
-  const [picUrl, setPicUrl] = useState(user?.image);  
+  const [picUrl, setPicUrl] = useState(user?.image);
 
   const [updateProfile, setUpdateProfile] = useState(false);
 

@@ -17,10 +17,10 @@ const ValidImage = ({ className, ...props }: ImageProps) => {
         }
       }
     };
-    fetchImg();
+    void fetchImg();
   }, [props.src]);
 
-  return <img className={`${className}`} {...props} src={imageUrl}/>;
+  return <img className={className ?? ""} {...props} src={imageUrl}/>;
 };
 
 export default ValidImage;

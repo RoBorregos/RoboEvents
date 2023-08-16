@@ -49,32 +49,39 @@ export const eventRouter = createTRPCRouter({
       if (!event) return null;
 
       // Only check if user can see the event. Modification permission is checked in the mutation
-      if (compareRole({requiredRole: event.visibility, userRole: ctx.session?.user?.role})) return event;
+      if (
+        compareRole({
+          requiredRole: event.visibility,
+          userRole: ctx.session?.user?.role,
+        })
+      )
+        return event;
 
       return null;
     }),
-  getEventStart: publicProcedure.input(z.object({id: z.string()})).query(async ({input, ctx}) => {
-    const startDate = await ctx.prisma.date.findFirst({
-      where: {
-        eventId: input.id,
-      },
-      orderBy: {
-        start: "asc",
-      },
-      select: {
-        start: true,
-        end: true,
-      },
-      
-    });
-    return startDate;
-  }),
+  getEventStart: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const startDate = await ctx.prisma.dateStamp.findFirst({
+        where: {
+          eventId: input.id,
+        },
+        orderBy: {
+          start: "asc",
+        },
+        select: {
+          start: true,
+          end: true,
+        },
+      });
+      return startDate;
+    }),
 
   modifyOrCreateEvent: protectedProcedure
     .input(EventModel)
     .mutation(async ({ input, ctx }) => {
       try {
-        validateModifyEventPermissions({
+        await validateModifyEventPermissions({
           eventId: input.id,
           prisma: ctx.prisma,
           userId: ctx.session.user.id,
@@ -133,7 +140,7 @@ export const eventRouter = createTRPCRouter({
             });
           }
 
-          await prisma.date.deleteMany({
+          await prisma.dateStamp.deleteMany({
             where: {
               eventId: input.id as string,
             },
@@ -181,7 +188,8 @@ export const eventRouter = createTRPCRouter({
           });
         });
       } catch (err) {
-        console.log("Error: " + err);
+        console.log("Error: ");
+        console.log(err);
         return false;
       }
 
@@ -242,7 +250,9 @@ const validateModifyEventPermissions = async ({
       }
     }
   } else {
-    if (!compareRole({requiredRole: "organizationMember", userRole: userRole})) {
+    if (
+      !compareRole({ requiredRole: "organizationMember", userRole: userRole })
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: `You are not authorized to create an event.`,

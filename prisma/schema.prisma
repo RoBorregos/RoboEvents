@@ -62,28 +62,28 @@ model User {
     description     String?
     accounts        Account[]
     sessions        Session[]
-    eventsOwned     Event[]   @relation("owned")
-    eventsConfirmed Event[]   @relation("confirmed")
+    eventsOwned     Event[]   @relation(name: "owned")
+    eventsConfirmed Event[]   @relation(name: "confirmed")
     // Comment       Comment[]
 }
 
 model Event {
-    id          String   @id @default(cuid())
+    id          String      @id @default(cuid())
     name        String
-    owners      User[]   @relation("owned")
+    owners      User[]      @relation(name: "owned")
+    confirmed   User[]      @relation(name: "confirmed")
     description String
-    lastUpdate  DateTime @updatedAt
-    image       String   @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
+    lastUpdate  DateTime    @updatedAt
+    image       String      @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
     location    String
     visibility  String
-    confirmed   User[]   @relation("confirmed")
     tags        Tag[]
-    dates       Date[]
+    dates       DateStamp[]
     rrule       String?
     // comment     Comment[]
 }
 
-model Date {
+model DateStamp {
     id      String   @id @default(cuid())
     start   DateTime
     end     DateTime

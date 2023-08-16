@@ -1,7 +1,5 @@
 import * as Yup from "yup";
-import { env } from "~/env.mjs";
 import { isImgUrl } from "~/utils/image";
-import { roleOrLower } from "~/utils/role";
 
 export const eventSchema = Yup.object().shape({
   eventName: Yup.string().required("Required").min(3, "Name too short."),
@@ -23,7 +21,7 @@ export const eventSchema = Yup.object().shape({
     .test(
       "valid-hour",
       "End time must be greater than start time.",
-      async (value, context) => {
+      (value, context) => {
         const sd = new Date(context.parent.date);
         sd.setHours(
           parseInt(context.parent.startTime.split(":")[0] ?? "99"),

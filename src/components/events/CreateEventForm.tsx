@@ -1,6 +1,6 @@
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import { eventSchema } from "../schemas/eventSchema";
-import { ChangeEvent, useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { api } from "~/utils/api";
 import { env } from "~/env.mjs";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
@@ -11,7 +11,7 @@ import CreatableSelect from "react-select/creatable";
 import { useSession } from "next-auth/react";
 import { PageSubtitle } from "../general/PageElements";
 import { roleOrLower } from "~/utils/role";
-import { RouterOutputs } from "~/utils/api";
+import type { RouterOutputs } from "~/utils/api";
 import makeAnimated from "react-select/animated";
 
 export interface CreateEventStyle {
@@ -179,12 +179,12 @@ export const CreateEventForm = ({
                   </label>
                   <Select
                     className="text-black"
-                    onChange={(e) =>
-                      setFieldValue(
+                    onChange={async (e) => {
+                      await setFieldValue(
                         "visibility",
                         e?.value ?? sessionData.user.role
-                      )
-                    }
+                      );
+                    }}
                     options={visibilityOptions}
                     defaultValue={defaultVisibility}
                   />
@@ -209,13 +209,12 @@ export const CreateEventForm = ({
                     defaultValue={defaultOwners}
                     className="basic-multi-select mr-2 text-black"
                     classNamePrefix="select"
-                    onChange={(e) =>
-                      setFieldValue(
+                    onChange={async (e) => {
+                      await setFieldValue(
                         "owners",
-                        // @ts-ignore
                         e.map((values) => values.value) ?? []
-                      )
-                    }
+                      );
+                    }}
                   />
                 </div>
                 <div className="my-4">
@@ -237,13 +236,13 @@ export const CreateEventForm = ({
                     className="mr-2 text-black"
                     options={tagOptions}
                     defaultValue={defaultTags}
-                    onChange={(e) =>
-                      setFieldValue(
+                    onChange={async (e) => {
+                      await setFieldValue(
                         "tags",
                         // @ts-ignore
                         e.map((values) => values.value) ?? []
-                      )
-                    }
+                      );
+                    }}
                   />
                 </div>
                 <div className="my-4">
@@ -406,12 +405,12 @@ export const CreateEventForm = ({
                     className={twMerge("h-10", styles.field)}
                     id="linkfield"
                     name="linkfield"
-                    onBlur={(e: ChangeEvent<HTMLInputElement>) => {
-                      setFieldValue("eventPicture", e.target.value, true);
+                    onBlur={async (e: ChangeEvent<HTMLInputElement>) => {
+                      await setFieldValue("eventPicture", e.target.value, true);
                     }}
                   />
                   <Field
-                    className={styles.field + " hidden"}
+                    className={twMerge("hidden", styles.field)}
                     id="eventPicture"
                     name="eventPicture"
                   />
@@ -420,7 +419,7 @@ export const CreateEventForm = ({
                     type="file"
                     name="file"
                     accept="image/*"
-                    onChange={async (e) => {
+                    onChange={(e) => {
                       if (!e.target.files) return;
                       const file = e.target.files[0];
                       if (!file) return;
@@ -428,7 +427,7 @@ export const CreateEventForm = ({
                       const reader = new FileReader();
                       reader.readAsDataURL(file);
                       reader.onloadend = async () => {
-                        setFieldValue("eventPicture", reader.result, true);
+                        await setFieldValue("eventPicture", reader.result, true);
                         setPicUrl(reader.result as string);
                       };
                     }}
@@ -495,9 +494,7 @@ const getDefaultTime = ({
 }: {
   startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
 }) => {
-  console.log("Start date:");
-  console.log(startDate);
-  if (!startDate || !startDate.start) {
+  if (!startDate) {
     const today = new Date();
     const maxDay = new Date(
       today.getFullYear() + 2,
