@@ -1,4 +1,4 @@
-# Event manager
+# Event Manager
 
 Web page aimed towards helping RoBorregos to manage their events and communicate them efficiently with the community.
 
