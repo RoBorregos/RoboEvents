@@ -1,14 +1,13 @@
 import { Formik, Field, Form, ErrorMessage } from "formik";
-import { updateUserSchema } from "../schemas/loginSchema";
+import { eventSchema } from "../schemas/eventSchema";
 import { ChangeEvent, useState } from "react";
 import { api } from "~/utils/api";
 import { env } from "~/env.mjs";
-import { Event } from "@prisma/client";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 import ValidImage from "../general/ValidImage";
 import { twMerge } from "tailwind-merge";
 import Select from "react-select";
-import CreatableSelect from 'react-select/creatable';
+import CreatableSelect from "react-select/creatable";
 import { useSession } from "next-auth/react";
 import { PageSubtitle } from "../general/PageElements";
 import { roleOrLower } from "~/utils/role";
@@ -28,21 +27,25 @@ const animatedComponents = makeAnimated();
 export const CreateEventForm = ({
   styles,
   defaultValues,
-  changeImg,
 }: {
   styles: CreateEventStyle;
-  defaultValues?: Event;
-  changeImg?: React.Dispatch<React.SetStateAction<string | undefined>>;
+  defaultValues?: RouterOutputs["event"]["getModifyEventInfo"];
 }) => {
-  const context = api.useContext();
   const { data: sessionData, status } = useSession();
   const { data: userID } = api.user.getAllUserId.useQuery();
   const { data: tags } = api.util.getTags.useQuery();
+  const { data: startDate, status: dateStatus } =
+    api.event.getEventStart.useQuery({
+      id: defaultValues?.id ?? "",
+    });
 
-  const mutation = api.user.updateProfile.useMutation({
+  const mutation = api.event.modifyOrCreateEvent.useMutation({
     onSuccess: () => {
-      context.user.fullInfo.invalidate();
-      alert("Profile updated!");
+      alert(
+        "Event " +
+          (defaultValues?.id ? "updated" : "created") +
+          " successfully!"
+      );
     },
     onError: (error) => {
       alert(error);
@@ -52,26 +55,15 @@ export const CreateEventForm = ({
   const [oneDate, setOneDate] = useState(true);
   const [picUrl, setPicUrl] = useState(defaultValues?.image || "");
 
-  const today = new Date();
-  const maxDay = new Date(
-    today.getFullYear() + 2,
-    today.getMonth(),
-    today.getDate()
-  );
-  const minDay = new Date(
-    today.getFullYear() - 2,
-    today.getMonth(),
-    today.getDate()
-  );
-  const defaultDate = today.toISOString().split("T")[0];
-  const defaultMax = maxDay.toISOString().split("T")[0];
-  const defaultMin = minDay.toISOString().split("T")[0];
+  const {
+    defaultDate,
+    defaultMax,
+    defaultMin,
+    defaultStartTime,
+    defaultEndTime,
+  } = getDefaultTime({ startDate });
 
-  const hours = String(today.getHours()).padStart(2, "0");
-  const minutes = String(today.getMinutes()).padStart(2, "0");
-  const defaultTime = `${hours}:${minutes}`;
-
-  if (status == "loading") {
+  if (status == "loading" || dateStatus == "loading") {
     return (
       <div className={styles.container}>
         <PageSubtitle text="Loading..." />
@@ -87,35 +79,55 @@ export const CreateEventForm = ({
     );
   }
 
+  // Get select options
   const visibilityOptions = getVisibilityOptions(sessionData.user.role);
   const ownerOptions = getOwnerOptions(userID);
   const tagOptions = getTagOptions(tags);
-  console.log(tagOptions);
-  console.log(ownerOptions);
+
+  // Get default values for selects
+  const defaultVisibility = defaultValues?.visibility
+    ? { value: defaultValues.visibility, label: defaultValues.visibility }
+    : null;
+  const defaultOwners = defaultValues?.owners.map((owner) => ({
+    value: owner.id,
+    label: owner.username,
+  }));
+  const defaultTags = defaultValues?.tags.map((tag) => ({
+    value: tag.name,
+    label: tag.name,
+  }));
 
   return (
     <div className={styles.container}>
       <Formik
         initialValues={{
-          eventName: "",
-          ics: "",
-          eventDescription: "",
-          eventPicture: "",
-          eventLocation: "",
-          visibility: "",
-          owners: [""],
-          tags: [""],
-          startTime: defaultTime,
-          endTime: defaultTime,
+          eventName: defaultValues?.name ?? "",
+          eventDescription: defaultValues?.description ?? "",
+          eventPicture: defaultValues?.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
+          eventLocation: defaultValues?.location ?? "",
+          visibility: defaultValues?.visibility
+            ? defaultValues.visibility
+            : sessionData.user.role ?? "",
+          owners: defaultValues?.owners.map((owner) => owner.id) ?? [],
+          tags: defaultValues?.tags.map((tag) => tag.name) ?? [],
+          startTime: defaultStartTime,
+          endTime: defaultEndTime,
           date: defaultDate,
         }}
-        validationSchema={updateUserSchema}
+        validationSchema={eventSchema}
         onSubmit={(values) => {
-          // mutation.mutate({
-          //   username: values.username,
-          //   profilePicture: values.profilePicture,
-          //   description: values.profileDescription,
-          // });
+          mutation.mutate({
+            id: defaultValues?.id,
+            name: values.eventName,
+            ownersId: values.owners,
+            description: values.eventDescription,
+            image: values.eventPicture,
+            location: values.eventLocation,
+            visibility: values.visibility,
+            tags: values.tags,
+            startTime: computeDate(values.date, values.startTime),
+            endTime: computeDate(values.date, values.endTime),
+          });
         }}
         validateOnChange={false}
       >
@@ -174,6 +186,7 @@ export const CreateEventForm = ({
                       )
                     }
                     options={visibilityOptions}
+                    defaultValue={defaultVisibility}
                   />
                 </div>
                 <div className="my-4">
@@ -193,9 +206,16 @@ export const CreateEventForm = ({
                     components={animatedComponents}
                     isMulti
                     options={ownerOptions}
+                    defaultValue={defaultOwners}
                     className="basic-multi-select mr-2 text-black"
                     classNamePrefix="select"
-                    onChange={(e) => setFieldValue("owners", e ?? [])}
+                    onChange={(e) =>
+                      setFieldValue(
+                        "owners",
+                        // @ts-ignore
+                        e.map((values) => values.value) ?? []
+                      )
+                    }
                   />
                 </div>
                 <div className="my-4">
@@ -216,7 +236,14 @@ export const CreateEventForm = ({
                     isMulti
                     className="mr-2 text-black"
                     options={tagOptions}
-                    onChange={(e) => setFieldValue("tags", e ?? [])}
+                    defaultValue={defaultTags}
+                    onChange={(e) =>
+                      setFieldValue(
+                        "tags",
+                        // @ts-ignore
+                        e.map((values) => values.value) ?? []
+                      )
+                    }
                   />
                 </div>
                 <div className="my-4">
@@ -274,31 +301,55 @@ export const CreateEventForm = ({
                     <p className="ml-2 pt-1"> One day </p>
                   </div>
                   {oneDate ? (
-                    <div className="flex flex-row flex-wrap align-middle">
-                      <input
-                        className="inline h-11 text-black"
-                        type="date"
-                        id="start"
-                        min={defaultMin}
-                        max={defaultMax}
-                        {...getFieldProps("date")}
-                      />
-                      <div className="mx-4 my-2">
+                    <div className="flex flex-row flex-wrap items-center">
+                      <div className="mx-4 my-2 flex flex-col">
+                        <label className={styles.label} htmlFor="date">
+                          Date:
+                        </label>
+                        <input
+                          className={twMerge("mb-2", styles.field)}
+                          type="date"
+                          id="start"
+                          min={defaultMin}
+                          max={defaultMax}
+                          {...getFieldProps("date")}
+                        />
+                        <ErrorMessage
+                          component="a"
+                          className={styles.errorMsg}
+                          name="date"
+                        />
+                      </div>
+
+                      <div className="mx-4 my-2 flex flex-col">
                         <label className={styles.label} htmlFor="startTime">
                           Start time:
                         </label>
                         <input
                           type="time"
-                          className={styles.field}
+                          className={twMerge("mb-2", styles.field)}
                           {...getFieldProps("startTime")}
                         />
+                        <ErrorMessage
+                          component="a"
+                          className={styles.errorMsg}
+                          name="startTime"
+                        />
+                      </div>
+
+                      <div className="mx-4 my-2 flex flex-col">
                         <label className={styles.label} htmlFor="endTime">
                           End time:
                         </label>
                         <input
                           type="time"
-                          className={styles.field}
+                          className={twMerge("mb-2", styles.field)}
                           {...getFieldProps("endTime")}
+                        />
+                        <ErrorMessage
+                          component="a"
+                          className={styles.errorMsg}
+                          name="endTime"
                         />
                       </div>
                     </div>
@@ -428,4 +479,83 @@ const getTagOptions = (
   tags: RouterOutputs["util"]["getTags"] | null | undefined
 ) => {
   return tags?.map((tag) => ({ value: tag.name, label: tag.name }));
+};
+
+const computeDate = (dateWithoutHour: string, time: string) => {
+  const [hour, minute] = time.split(":");
+
+  const date = new Date(dateWithoutHour);
+
+  date.setHours(parseInt(hour ?? "0"), parseInt(minute ?? "0"), 0);
+  return date;
+};
+
+const getDefaultTime = ({
+  startDate,
+}: {
+  startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
+}) => {
+  console.log("Start date:");
+  console.log(startDate);
+  if (!startDate || !startDate.start) {
+    const today = new Date();
+    const maxDay = new Date(
+      today.getFullYear() + 2,
+      today.getMonth(),
+      today.getDate()
+    );
+    const minDay = new Date(
+      today.getFullYear() - 2,
+      today.getMonth(),
+      today.getDate()
+    );
+    const defaultDate = today.toISOString().split("T")[0] as string;
+    const defaultMax = maxDay.toISOString().split("T")[0];
+    const defaultMin = minDay.toISOString().split("T")[0];
+
+    const hours = String(today.getHours()).padStart(2, "0");
+    const minutes = String(today.getMinutes()).padStart(2, "0");
+    const defaultStartTime = `${hours}:${minutes}`;
+
+    return {
+      defaultDate,
+      defaultMax,
+      defaultMin,
+      defaultStartTime,
+      defaultEndTime: defaultStartTime,
+    };
+  } else {
+    const date = new Date(startDate.start);
+
+    const maxDay = new Date(
+      date.getFullYear() + 2,
+      date.getMonth(),
+      date.getDate()
+    );
+    const minDay = new Date(
+      date.getFullYear() - 2,
+      date.getMonth(),
+      date.getDate()
+    );
+
+    const defaultDate = date.toISOString().split("T")[0] as string;
+    const defaultMax = maxDay.toISOString().split("T")[0];
+    const defaultMin = minDay.toISOString().split("T")[0];
+
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const defaultStartTime = `${hours}:${minutes}`;
+
+    const dateEnd = new Date(startDate.end);
+    const hoursEnd = String(dateEnd.getHours()).padStart(2, "0");
+    const minutesEnd = String(dateEnd.getMinutes()).padStart(2, "0");
+    const defaultEndTime = `${hoursEnd}:${minutesEnd}`;
+    return {
+      defaultDate,
+      defaultMax,
+      defaultMin,
+      defaultStartTime,
+      defaultEndTime,
+    };
+  }
 };

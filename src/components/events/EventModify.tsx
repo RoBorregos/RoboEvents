@@ -3,8 +3,8 @@ import { PageSubtitle } from "~/components/general/PageElements";
 import { CreateEventStyle, CreateEventForm } from "./CreateEventForm";
 import { useState } from "react";
 import { AiFillEdit, AiOutlineEdit } from "react-icons/ai";
-import { Event } from "@prisma/client";
 import { RouterOutputs } from "~/utils/api";
+import ValidImage from "../general/ValidImage";
 
 const formStyle: CreateEventStyle = {
   label: "text-white mr-2 align-middle flex items-center h-10",
@@ -20,7 +20,7 @@ const EventModify = ({ eventId }: { eventId: string | undefined | null }) => {
   });
 
   return (
-    <div className="flex flex-wrap rounded-md bg-highlight p-2 text-tertiary">
+    <div className="flex w-fit flex-wrap rounded-md bg-highlight p-2 text-tertiary">
       <PageContent eventID={eventId} event={event} isLoading={isLoading} />
     </div>
   );
@@ -51,40 +51,73 @@ const PageContent = ({
     if (updateEvent) {
       return (
         <>
-          <div className="flex flex-row">
+          <div className="flex flex-row items-center">
             <AiFillEdit
               onClick={() => setUpdateEvent(!updateEvent)}
               className="mt-3"
               size={40}
             />
-            <p>Modificar evento</p>
+            <h3>
+              <b>Modify event</b>
+            </h3>
           </div>
           <CreateEventForm styles={formStyle} defaultValues={event} />
         </>
       );
     } else {
+      const tagText = event.confirmed.map((user) => user.username + ", ").slice(0, -2);
       return (
-        <>
-          <div className="flex flex-row">
+        <div>
+          <div className="flex flex-row items-center">
             <AiOutlineEdit
               onClick={() => setUpdateEvent(!updateEvent)}
               className="mt-3"
               size={40}
             />
-            <p>Modificar evento</p>
+            <h3>
+              <b>Modify event</b>
+            </h3>
           </div>
-          <PageSubtitle className="text-white" text={event.name} />
-          <div className="mw-full mt-2 rounded-lg bg-themebg p-2">
-            <p>Event Location: {event.location}</p>
-            <p>Event visibility: {event.visibility}</p>
-            <p>Owners: {event.owners.map((owner) => owner.username)}</p>
-            <p>Description: {event.description}</p>
-            <p>location: {event.location}</p>
-            <p>visibility: {event.visibility}</p>
-            <p>tags: {event.tags.map((tag) => tag.name)}</p>
-            <p>Confirmed: {event.confirmed.map((user) => user.username)}</p>
+
+          <div className="mt-2 flex flex-col rounded-lg bg-themebg p-2">
+            <div className="flex flex-col">
+              <PageSubtitle
+                className="mb-0 text-center text-white"
+                text={event.name}
+              />
+            </div>
+            <div className="flex w-full flex-col-reverse items-center rounded-lg bg-themebg p-2 md:flex-row">
+              <ValidImage
+                className="m-3 h-40 w-40 rounded-lg"
+                src={event.image}
+              />
+
+              <div>
+                <p>
+                  <b>Event Location:</b> {event.location}
+                </p>
+                <p>
+                  <b>Owners:</b> {event.owners.map((owner) => owner.username)}
+                </p>
+                <p>
+                  <b>Description:</b> {event.description}
+                </p>
+                <p>
+                  <b>location:</b> {event.location}
+                </p>
+                <p>
+                  <b>visibility:</b> {event.visibility}
+                </p>
+                <p>
+                  <b>tags:</b> {event.tags.map((tag) => tag.name)}
+                </p>
+                <p>
+                  <b>Confirmed:</b> {tagText}
+                </p>
+              </div>
+            </div>
           </div>
-        </>
+        </div>
       );
     }
   } else {
@@ -96,55 +129,3 @@ const PageContent = ({
     );
   }
 };
-
-// <>
-// <div className="">
-//   <PageSubtitle
-//     className="text-center text-white"
-//     text={event.name}
-//   />
-// </div>
-// <div className="basis-full md:basis-4/12">
-//   <div className="m-2 flex flex-col justify-center rounded-lg bg-themebg p-2">
-//     {user.name && (
-//       <PageSubtitle
-//         className="text-center text-white"
-//         text={user.name}
-//       />
-//     )}
-//     <ValidImage className="rounded-full" src={picUrl} />
-//   </div>
-// </div>
-// <div className="relative basis-full md:basis-8/12">
-//   <div className="m-2">
-//     <p className="break-all">Email: {user.email}</p>
-//     <p className="break-all">Username: {user.username}</p>
-//     <p className="break-all">Role: {user.role}</p>
-//     <p className="break-all">Description: {user.description}</p>
-//     {updateProfile ? (
-//       <AiOutlineEdit
-//         onClick={() => setUpdateProfile(!updateProfile)}
-//         className="mt-3"
-//         size={40}
-//       />
-//     ) : (
-//       <AiFillEdit
-//         onClick={() => setUpdateProfile(!updateProfile)}
-//         className="mt-3"
-//         size={40}
-//       />
-//     )}
-//     {updateProfile && (
-//       <UpdateUserForm
-//         styles={formStyle}
-//         defaultValues={{
-//           username: user.username ?? "",
-//           profilePicture: user.image,
-//           profileDescription: user.description ?? "",
-//         }}
-//         changeImg={setPicUrl}
-//       />
-//     )}
-//   </div>
-// </div>
-// </>

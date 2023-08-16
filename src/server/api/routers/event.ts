@@ -15,6 +15,7 @@ import { env } from "~/env.mjs";
 import { compareRole, getHighestRole, onlyUpperRole } from "~/utils/role";
 import { EventModel } from "~/zod/types";
 import { getDays, generateDates } from "~/utils/dates";
+import { getImageLink } from "~/server/supabase";
 
 // Input for an event of a single day:
 // start time (js date) & end time (js date).
@@ -33,7 +34,13 @@ export const eventRouter = createTRPCRouter({
           id: input.id,
         },
         include: {
-          owners: true,
+          owners: {
+            select: {
+              username: true,
+              name: true,
+              id: true,
+            },
+          },
           tags: true,
           confirmed: true,
         },
@@ -42,75 +49,58 @@ export const eventRouter = createTRPCRouter({
       if (!event) return null;
 
       // Only check if user can see the event. Modification permission is checked in the mutation
-      if (compareRole(ctx.session?.user?.role, event.visibility)) return event;
+      if (compareRole({requiredRole: event.visibility, userRole: ctx.session?.user?.role})) return event;
 
       return null;
     }),
+  getEventStart: publicProcedure.input(z.object({id: z.string()})).query(async ({input, ctx}) => {
+    const startDate = await ctx.prisma.date.findFirst({
+      where: {
+        eventId: input.id,
+      },
+      orderBy: {
+        start: "asc",
+      },
+      select: {
+        start: true,
+        end: true,
+      },
+      
+    });
+    return startDate;
+  }),
+
   modifyOrCreateEvent: protectedProcedure
     .input(EventModel)
     .mutation(async ({ input, ctx }) => {
-      if (input.id) {
-        const eventOwners = await ctx.prisma.event.findUnique({
-          where: {
-            id: input.id,
-          },
-          select: {
-            owners: {
-              select: {
-                id: true,
-              },
-            },
-          },
+      try {
+        validateModifyEventPermissions({
+          eventId: input.id,
+          prisma: ctx.prisma,
+          userId: ctx.session.user.id,
+          userRole: ctx.session?.user?.role ?? "",
         });
-
-        if (!eventOwners) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: `Event with id ${input.id} not found.`,
-          });
-        }
-
-        if (
-          !eventOwners.owners.find(
-            (owner) => owner.id === ctx.session?.user?.id
-          )
-        ) {
-          const users = await ctx.prisma.user.findMany({
-            where: {
-              id: {
-                in: input.ownersId,
-              },
-            },
-            select: {
-              role: true,
-            },
-          });
-          const highestRole = getHighestRole(users);
-
-          if (!onlyUpperRole(highestRole, ctx.session?.user?.role)) {
-            throw new TRPCError({
-              code: "UNAUTHORIZED",
-              message: `You are not authorized to modify this event.`,
-            });
-          }
-        }
-      } else {
-        if (!compareRole("communityMember", ctx.session.user.role)) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: `You are not authorized to create an event.`,
-          });
-        }
+      } catch (error) {
+        console.log("Error: ", error);
+        return false;
       }
 
+      if (!input.id)
+        input.id = `${ctx.session.user.id}-${Date.now().toString()}`;
+
       // Create the event.
+
+      // Obtain needed data
+
+      const dates = generateDates(input.startTime, input.endTime, input.rrule);
+      // Get Image link if it's a base64 string.
+      input.image = await getImageLink(input.id, input.image, "event-pictures");
 
       const newOwners = input.ownersId.map((ownerId) => {
         return { id: ownerId };
       });
 
       let isCreatorPresent = false;
-
       newOwners.map((owner) => {
         if (owner.id === ctx.session?.user?.id) {
           isCreatorPresent = true;
@@ -125,72 +115,138 @@ export const eventRouter = createTRPCRouter({
         return { name: tag };
       });
 
-      // Create specified tags if they don't exits.
-      for (const tag of input.tags) {
-        const upsert = await ctx.prisma.tag.upsert({
-          where: {
-            name: tag,
-          },
-          update: {},
-          create: {
-            name: tag,
-            tagColor: "blue",
-          },
+      // DB operations
+
+      // Use transaction to ensure that all operations succeed or fail together.
+      try {
+        await ctx.prisma.$transaction(async (prisma) => {
+          for (const tag of input.tags) {
+            await prisma.tag.upsert({
+              where: {
+                name: tag,
+              },
+              update: {},
+              create: {
+                name: tag,
+                tagColor: "blue",
+              },
+            });
+          }
+
+          await prisma.date.deleteMany({
+            where: {
+              eventId: input.id as string,
+            },
+          });
+
+          await prisma.event.upsert({
+            where: {
+              id: input.id as string,
+            },
+            update: {
+              name: input.name,
+              owners: {
+                set: newOwners,
+              },
+              description: input.description,
+              image: input.image as string,
+              location: input.location,
+              visibility: input.visibility,
+              tags: {
+                set: newTags,
+              },
+              dates: {
+                create: dates,
+              },
+              rrule: input.rrule,
+            },
+            create: {
+              id: input.id as string,
+              name: input.name,
+              owners: {
+                connect: newOwners,
+              },
+              description: input.description,
+              image: input.image as string,
+              location: input.location,
+              visibility: input.visibility,
+              tags: {
+                connect: newTags,
+              },
+              dates: {
+                create: dates,
+              },
+              rrule: input.rrule,
+            },
+          });
         });
+      } catch (err) {
+        console.log("Error: " + err);
+        return false;
       }
-
-      deleteDates(input.id ?? "-1", ctx.prisma);
-      const dates = generateDates(input.startTime, input.endTime, input.rrule);
-
-      const event = await ctx.prisma.event.upsert({
-        where: {
-          id: input.id ?? "-1",
-        },
-        update: {
-          name: input.name,
-          owners: {
-            set: newOwners,
-          },
-          description: input.description,
-          image: input.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
-          location: input.location,
-          visibility: input.visibility,
-          tags: {
-            set: newTags,
-          },
-          dates: {
-            create: dates,
-          },
-          rrule: input.rrule,
-        },
-        create: {
-          name: input.name,
-          owners: {
-            connect: newOwners,
-          },
-          description: input.description,
-          image: input.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
-          location: input.location,
-          visibility: input.visibility,
-          tags: {
-            connect: newTags,
-          },
-          dates: {
-            create: dates,
-          },
-          rrule: input.rrule,
-        },
-      });
 
       return true;
     }),
 });
 
-// Delete dates when an event is modified.
-const deleteDates = async (eventId: string, prisma: Prisma) => {
-  await prisma.date.deleteMany({
-    where: {
-      eventId: eventId,
-    },
-  });
+const validateModifyEventPermissions = async ({
+  eventId,
+  prisma,
+  userId,
+  userRole,
+}: {
+  eventId: string | undefined | null;
+  prisma: Prisma;
+  userId: string;
+  userRole: string;
+}) => {
+  if (eventId) {
+    const eventOwners = await prisma.event.findUnique({
+      where: {
+        id: eventId,
+      },
+      select: {
+        owners: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!eventOwners) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Event with id ${eventId} not found.`,
+      });
+    }
+
+    if (!eventOwners.owners.find((owner) => owner.id === userId)) {
+      const users = await prisma.user.findMany({
+        where: {
+          id: {
+            in: eventOwners.owners.map((owner) => owner.id),
+          },
+        },
+        select: {
+          role: true,
+        },
+      });
+      const highestRole = getHighestRole(users);
+
+      if (!onlyUpperRole(highestRole, userRole)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: `You are not authorized to modify this event.`,
+        });
+      }
+    }
+  } else {
+    if (!compareRole({requiredRole: "organizationMember", userRole: userRole})) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: `You are not authorized to create an event.`,
+      });
+    }
+  }
 };

@@ -53,10 +53,14 @@ export const roleOrLower: RoleType = {
 
 // 1: allowed
 // 0: not allowed
-export const compareRole = (
-  requiredRole: string,
-  userRole: string | undefined
-) => {
+// A role is allowed if it is in the same or higher level than the required role
+export const compareRole = ({
+  requiredRole,
+  userRole,
+}: {
+  requiredRole: string;
+  userRole: string | undefined;
+}) => {
   if (!userRole) return 0;
   const t = roleOrUpper[requiredRole];
 

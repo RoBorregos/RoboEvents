@@ -1,3 +1,5 @@
+import { twMerge } from "tailwind-merge";
+
 export const PageBody: React.FC<{ children: React.ReactNode }> = ({
   children,
 }: {
@@ -13,7 +15,11 @@ export const PageTitle = ({
   text: string;
   className?: string;
 }) => {
-  return <h1 className={`mb-4 text-4xl font-semibold ${className}`}>{text}</h1>;
+  return (
+    <h1 className={twMerge("mb-4 text-4xl font-semibold", className)}>
+      {text}
+    </h1>
+  );
 };
 
 export const PageSubtitle = ({
@@ -23,6 +29,9 @@ export const PageSubtitle = ({
   text: string;
   className?: string;
 }) => {
-  return <h2 className={`mb-4 text-2xl font-semibold ${className}`}>{text}</h2>;
+  return (
+    <h2 className={twMerge("mb-4 text-2xl font-semibold", className)}>
+      {text}
+    </h2>
+  );
 };
-

@@ -1,5 +1,5 @@
 import { Formik, Field, Form, ErrorMessage } from "formik";
-import { updateUserSchema } from "../schemas/loginSchema";
+import { updateUserSchema } from "../schemas/updateUser";
 import { ChangeEvent } from "react";
 import { api } from "~/utils/api";
 //TODO: Add client-side resize of profile image.
