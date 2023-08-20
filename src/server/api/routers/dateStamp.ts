@@ -12,54 +12,24 @@ import {
 import { getRoleOrLower } from "~/utils/role";
 
 export const dateRouter = createTRPCRouter({
-  // Returns date objects with start and e
+  // Returns datestamps objects with start and end date and event ids.
   getEventsByTime: publicProcedure
     .input(
       z.object({
-        date: z.string(),
-        previous: z.boolean().nullish(),
+        start: z.string(),
+        end: z.string(),
         unique: z.boolean(),
-        monthly: z.boolean(),
       })
     )
     .query(async ({ input, ctx }) => {
-      const date = new Date(input.date);
+      // Perform date operations using client input, to avoid errors if the server is located in a different timezone.
+      // Date constructor uses server's timezone unless the whole date instance is passed.
+      const start = new Date(input.start);
+      const end = new Date(input.end);
 
-      if (isNaN(date.getTime())) return false;
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
 
-      let start;
-      let end;
-      if (input.monthly) {
-        end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-      } else {
-        end = new Date(date.getFullYear() + 1, 0, 1);
-      }
-
-      if (input.previous) {
-        if (input.monthly) {
-          start = new Date(date.getFullYear(), date.getMonth(), 1);
-        } else {
-          start = new Date(date.getFullYear(), 0, 1);
-        }
-      } else {
-        if (input.monthly) {
-          const startMonth = new Date(date.getFullYear(), date.getMonth());
-          const today = new Date();
-          today.setDate(today.getDate() - 1);
-          if (today > startMonth) {
-            start = today;
-          } else {
-            start = startMonth;
-          }
-        } else {
-          const startYear = new Date(date.getFullYear(), 0, 1);
-          const today = new Date();
-          today.setDate(today.getDate() - 1);
-          start = (startYear > today) ? startYear : today;
-        }
-      }
-
-      const visibleTags = getRoleOrLower(ctx.session?.user.role);
+      const visibleEvents = getRoleOrLower(ctx.session?.user.role);
 
       const events = await ctx.prisma.dateStamp.findMany({
         where: {
@@ -69,7 +39,7 @@ export const dateRouter = createTRPCRouter({
           },
           event: {
             visibility: {
-              in: visibleTags,
+              in: visibleEvents,
             },
           },
         },

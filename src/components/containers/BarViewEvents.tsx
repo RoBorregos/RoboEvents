@@ -14,25 +14,18 @@ const BarViewEvents = () => {
   const [previousEvents, setPreviousEvents] = useState(false);
   const [yearlyEvents, setYearlyEvents] = useState(false);
   const [hideRepeatedEvents, setHideRepeatedEvents] = useState(false);
-
+  
   const { data: eventIds, isLoading } = api.dateStamp.getEventsByTime.useQuery(
     {
-      date: time.toString(),
-      previous: previousEvents,
+      start: getStartDate({date: time, previous: previousEvents, monthly: !yearlyEvents}).toISOString(),
+      end: getEndDate({date: time, monthly: !yearlyEvents}).toISOString(),
       unique: hideRepeatedEvents,
-      monthly: !yearlyEvents,
     },
     {
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
     }
   );
-
-  console.log(eventIds);
-  // console.log("date: ", time.toString());
-  // console.log("previous: ", previousEvents);
-  // console.log("unique: ", hideRepeatedEvents);
-  // console.log("monthly: ", !yearlyEvents);
 
   // Avoid different hours in server and component
   useEffect(() => {
@@ -252,3 +245,70 @@ const capitalizeString = (word: string | undefined | null) => {
 
   return "";
 };
+
+
+
+const getStartDate = ({date, previous, monthly}: {date: Date, previous: boolean, monthly: boolean}) => {
+
+  if (isNaN(date.getTime())){
+    console.log("Invalid date");
+    return new Date();
+  } 
+
+  let start;
+
+  if (previous) {
+    start = new Date(date);
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    if (!monthly) {
+      start.setMonth(0);
+    }
+  } else {
+    if (monthly) {
+      const startMonth = new Date(date);
+      startMonth.setDate(1);
+      startMonth.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setDate(today.getDate() - 1);
+      today.setHours(0, 0, 0, 0);
+      if (today > startMonth) {
+        start = today;
+      } else {
+        start = startMonth;
+      }
+    } else {
+      const startYear = new Date(date);
+      startYear.setMonth(0);
+      startYear.setDate(1);
+      startYear.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setDate(today.getDate() - 1);
+      start = startYear > today ? startYear : today;
+    }
+  }
+
+  return start;
+}
+
+const getEndDate = ({date, monthly}: {date: Date, monthly: boolean}) => {
+
+  if (isNaN(date.getTime())){
+    console.log("Invalid date");
+    return new Date();
+  }
+
+  const end = new Date(date);
+  end.setDate(1);
+  end.setHours(0, 0, 0, 0);
+
+  if (monthly) {
+    end.setMonth(end.getMonth() + 1);
+  } else {
+    end.setFullYear(end.getFullYear() + 1);
+    end.setMonth(0);
+  }
+
+  return end;
+}

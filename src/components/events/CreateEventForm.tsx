@@ -31,6 +31,7 @@ export const CreateEventForm = ({
   styles: CreateEventStyle;
   defaultValues?: RouterOutputs["event"]["getModifyEventInfo"];
 }) => {
+  const context = api.useContext();
   const { data: sessionData, status } = useSession();
   const { data: userID } = api.user.getAllUserId.useQuery();
   const { data: tags } = api.util.getTags.useQuery();
@@ -46,6 +47,8 @@ export const CreateEventForm = ({
           (defaultValues?.id ? "updated" : "created") +
           " successfully!"
       );
+      void context.event.getEventStart.invalidate({ id: defaultValues?.id });
+      void context.dateStamp.getEventsByTime.invalidate();
     },
     onError: (error) => {
       alert(error);
@@ -116,13 +119,6 @@ export const CreateEventForm = ({
         }}
         validationSchema={eventSchema}
         onSubmit={(values) => {
-          console.log("Date: ");
-          console.log(values.date);
-          console.log(computeDate(values.date, values.startTime).toISOString());
-          console.log(
-            new Date(computeDate(values.date, values.startTime).getTime())
-          );
-          console.log(new Date());
           mutation.mutate({
             id: defaultValues?.id,
             name: values.eventName,
@@ -498,7 +494,7 @@ const computeDate = (dateWithoutHour: string, time: string) => {
   let date;
   try {
     if (year && month && day) {
-      date = new Date(parseInt(year), parseInt(month), parseInt(day));
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       date.setHours(parseInt(hour ?? "0"), parseInt(minute ?? "0"), 0);
       return date;
     } else throw new Error("Invalid date");
@@ -534,13 +530,21 @@ const getDefaultTime = ({
   const defaultDate =
     baseDate.getFullYear().toString() +
     "-" +
-    baseDate.getMonth().toString().padStart(2, "0") +
+    (baseDate.getMonth() + 1).toString().padStart(2, "0") +
     "-" +
     baseDate.getDate().toString().padStart(2, "0");
   const defaultMax =
-    maxDay.getFullYear().toString() + "-" + maxDay.getMonth().toString().padStart(2, "0") + "-" + maxDay.getDate().toString().padStart(2, "0");
+    maxDay.getFullYear().toString() +
+    "-" +
+    (maxDay.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    maxDay.getDate().toString().padStart(2, "0");
   const defaultMin =
-    minDay.getFullYear().toString() + "-" + minDay.getMonth().toString().padStart(2, "0") + "-" + minDay.getDate().toString().padStart(2, "0");
+    minDay.getFullYear().toString() +
+    "-" +
+    (minDay.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    minDay.getDate().toString().padStart(2, "0");
 
   const hours = String(baseDate.getHours()).padStart(2, "0");
   const minutes = String(baseDate.getMinutes()).padStart(2, "0");
