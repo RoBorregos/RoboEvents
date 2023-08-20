@@ -18,13 +18,13 @@ const formStyle: UpdateUserStyle = {
 const OwnerCard = ({ userid }: { userid: string }) => {
   const { data: user, isLoading } = api.user.fullInfo.useQuery(userid, {
     onSuccess: (user) => {
-      setPicUrl(user?.image);
+      setPicUrl(user?.image ?? "");
     },
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
 
-  const [picUrl, setPicUrl] = useState(user?.image);
+  const [picUrl, setPicUrl] = useState(user?.image ?? "");
 
   const [updateProfile, setUpdateProfile] = useState(false);
 
@@ -67,7 +67,7 @@ const OwnerCard = ({ userid }: { userid: string }) => {
                   styles={formStyle}
                   defaultValues={{
                     username: user.username ?? "",
-                    profilePicture: user.image,
+                    profilePicture: user.image ?? "",
                     profileDescription: user.description ?? "",
                   }}
                   changeImg={setPicUrl}

@@ -116,6 +116,13 @@ export const CreateEventForm = ({
         }}
         validationSchema={eventSchema}
         onSubmit={(values) => {
+          console.log("Date: ");
+          console.log(values.date);
+          console.log(computeDate(values.date, values.startTime).toISOString());
+          console.log(
+            new Date(computeDate(values.date, values.startTime).getTime())
+          );
+          console.log(new Date());
           mutation.mutate({
             id: defaultValues?.id,
             name: values.eventName,
@@ -427,7 +434,11 @@ export const CreateEventForm = ({
                       const reader = new FileReader();
                       reader.readAsDataURL(file);
                       reader.onloadend = async () => {
-                        await setFieldValue("eventPicture", reader.result, true);
+                        await setFieldValue(
+                          "eventPicture",
+                          reader.result,
+                          true
+                        );
                         setPicUrl(reader.result as string);
                       };
                     }}
@@ -481,12 +492,20 @@ const getTagOptions = (
 };
 
 const computeDate = (dateWithoutHour: string, time: string) => {
+  const [year, month, day] = dateWithoutHour.split("-");
   const [hour, minute] = time.split(":");
 
-  const date = new Date(dateWithoutHour);
-
-  date.setHours(parseInt(hour ?? "0"), parseInt(minute ?? "0"), 0);
-  return date;
+  let date;
+  try {
+    if (year && month && day) {
+      date = new Date(parseInt(year), parseInt(month), parseInt(day));
+      date.setHours(parseInt(hour ?? "0"), parseInt(minute ?? "0"), 0);
+      return date;
+    } else throw new Error("Invalid date");
+  } catch (error) {
+    alert(error);
+    return new Date();
+  }
 };
 
 const getDefaultTime = ({
@@ -494,65 +513,55 @@ const getDefaultTime = ({
 }: {
   startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
 }) => {
+  let baseDate;
   if (!startDate) {
-    const today = new Date();
-    const maxDay = new Date(
-      today.getFullYear() + 2,
-      today.getMonth(),
-      today.getDate()
-    );
-    const minDay = new Date(
-      today.getFullYear() - 2,
-      today.getMonth(),
-      today.getDate()
-    );
-    const defaultDate = today.toISOString().split("T")[0] as string;
-    const defaultMax = maxDay.toISOString().split("T")[0];
-    const defaultMin = minDay.toISOString().split("T")[0];
-
-    const hours = String(today.getHours()).padStart(2, "0");
-    const minutes = String(today.getMinutes()).padStart(2, "0");
-    const defaultStartTime = `${hours}:${minutes}`;
-
-    return {
-      defaultDate,
-      defaultMax,
-      defaultMin,
-      defaultStartTime,
-      defaultEndTime: defaultStartTime,
-    };
+    baseDate = new Date();
   } else {
-    const date = new Date(startDate.start);
-
-    const maxDay = new Date(
-      date.getFullYear() + 2,
-      date.getMonth(),
-      date.getDate()
-    );
-    const minDay = new Date(
-      date.getFullYear() - 2,
-      date.getMonth(),
-      date.getDate()
-    );
-
-    const defaultDate = date.toISOString().split("T")[0] as string;
-    const defaultMax = maxDay.toISOString().split("T")[0];
-    const defaultMin = minDay.toISOString().split("T")[0];
-
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const defaultStartTime = `${hours}:${minutes}`;
-
-    const dateEnd = new Date(startDate.end);
-    const hoursEnd = String(dateEnd.getHours()).padStart(2, "0");
-    const minutesEnd = String(dateEnd.getMinutes()).padStart(2, "0");
-    const defaultEndTime = `${hoursEnd}:${minutesEnd}`;
-    return {
-      defaultDate,
-      defaultMax,
-      defaultMin,
-      defaultStartTime,
-      defaultEndTime,
-    };
+    baseDate = new Date(startDate.start);
   }
+
+  const maxDay = new Date(
+    baseDate.getFullYear() + 2,
+    baseDate.getMonth(),
+    baseDate.getDate()
+  );
+  const minDay = new Date(
+    baseDate.getFullYear() - 2,
+    baseDate.getMonth(),
+    baseDate.getDate()
+  );
+
+  const defaultDate =
+    baseDate.getFullYear().toString() +
+    "-" +
+    baseDate.getMonth().toString().padStart(2, "0") +
+    "-" +
+    baseDate.getDate().toString().padStart(2, "0");
+  const defaultMax =
+    maxDay.getFullYear().toString() + "-" + maxDay.getMonth().toString().padStart(2, "0") + "-" + maxDay.getDate().toString().padStart(2, "0");
+  const defaultMin =
+    minDay.getFullYear().toString() + "-" + minDay.getMonth().toString().padStart(2, "0") + "-" + minDay.getDate().toString().padStart(2, "0");
+
+  const hours = String(baseDate.getHours()).padStart(2, "0");
+  const minutes = String(baseDate.getMinutes()).padStart(2, "0");
+  const defaultStartTime = `${hours}:${minutes}`;
+
+  let defaultEndTime;
+
+  if (startDate) {
+    const dateEnd = new Date(startDate.end);
+    const hoursEnd = dateEnd.getHours().toString().padStart(2, "0");
+    const minutesEnd = dateEnd.getMinutes().toString().padStart(2, "0");
+    defaultEndTime = `${hoursEnd}:${minutesEnd}`;
+  } else {
+    defaultEndTime = defaultStartTime;
+  }
+
+  return {
+    defaultDate,
+    defaultMax,
+    defaultMin,
+    defaultStartTime,
+    defaultEndTime,
+  };
 };

@@ -1,20 +1,22 @@
 import { useSession } from "next-auth/react";
 import Layout from "~/components/layout/Layout";
+import { api, type RouterOutputs } from "~/utils/api";
+import { PageBody } from "~/components/general/PageElements";
 
-import {
-  PageBody,
-} from "~/components/general/PageElements";
-import { compareRole } from "~/utils/role";
+import { PageSubtitle } from "~/components/general/PageElements";
+import EventModify from "~/components/events/EventModify";
+import BarViewEvents from "~/components/containers/BarViewEvents";
 
 export default function Home() {
-  const { data: session } = useSession();
 
   return (
     <Layout>
       <PageBody>
         <h1 className="text-5xl font-extrabold tracking-tight text-black sm:text-[5rem]">
-         Event Manager
+          Event Manager
         </h1>
+
+        <BarViewEvents/>
       </PageBody>
     </Layout>
   );

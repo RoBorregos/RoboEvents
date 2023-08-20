@@ -1,4 +1,3 @@
-
 // interface Roles {
 //   role: "admin" | "organizationMember" | "communityMember" | "authenticated" | "unauthenticated";
 // }
@@ -59,6 +58,10 @@ export const compareRole = ({
   requiredRole: string;
   userRole: string | undefined;
 }) => {
+
+  if (requiredRole === "unauthenticated")
+    return 1;
+  
   if (!userRole) return 0;
   const t = roleOrUpper[requiredRole];
 
@@ -94,4 +97,14 @@ export const getHighestRole = (roles: UserRole[]) => {
   }
 
   return highestRole;
+};
+
+export const getRoleOrLower = (role: string | undefined | null) => {
+  if (!role) return unauthenticatedOrLower;
+
+  const roles = roleOrLower[role];
+
+  if (!roles) return unauthenticatedOrLower;
+
+  return roles;
 };

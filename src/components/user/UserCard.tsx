@@ -3,6 +3,7 @@ import type { AppRouter } from "~/server/api/root";
 import type { inferRouterOutputs } from "@trpc/server";
 import { PageSubtitle } from "~/components/general/PageElements";
 import ValidImage from "../general/ValidImage";
+import {env} from "~/env.mjs";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 
@@ -45,7 +46,7 @@ const ownerCard = (user: UserGetOutput) => {
     <div className="basis-full md:basis-4/12">
       <div className="m-2 flex flex-col justify-center rounded-lg bg-themebg p-2">
         <PageSubtitle className="text-center text-white" text={name} />
-        <ValidImage className="rounded-full" src={user.image} />
+        <ValidImage className="rounded-full" src={user.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE} />
       </div>
     </div>
   );

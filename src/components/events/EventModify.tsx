@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AiFillEdit, AiOutlineEdit } from "react-icons/ai";
 import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
+import { twMerge } from "tailwind-merge";
 
 const formStyle: CreateEventStyle = {
   label: "text-white mr-2 align-middle flex items-center h-10",
@@ -14,13 +15,14 @@ const formStyle: CreateEventStyle = {
   container: "bg-themebg mw-full mt-2 p-2 rounded-lg",
 };
 
-const EventModify = ({ eventId }: { eventId: string | undefined | null }) => {
+const EventModify = ({ eventId, className }: { eventId: string | undefined | null, className?: string }) => {
   const { data: event, isLoading } = api.event.getModifyEventInfo.useQuery({
     id: eventId,
   });
+  console.log(event);
 
   return (
-    <div className="flex w-fit flex-wrap rounded-md bg-highlight p-2 text-tertiary">
+    <div className={twMerge("flex w-fit flex-wrap rounded-md bg-highlight p-2 text-tertiary", className)}>
       <PageContent eventID={eventId} event={event} isLoading={isLoading} />
     </div>
   );
@@ -38,6 +40,13 @@ const PageContent = ({
   isLoading: boolean;
 }) => {
   const [updateEvent, setUpdateEvent] = useState(eventID ? false : true);
+  const { data: canEdit } = api.event.canEdit.useQuery(
+    { id: eventID },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    }
+  );
 
   if (isLoading) {
     return (
@@ -51,16 +60,18 @@ const PageContent = ({
     if (updateEvent) {
       return (
         <>
-          <div className="flex flex-row items-center">
-            <AiFillEdit
+          {canEdit && (
+            <div
               onClick={() => setUpdateEvent(!updateEvent)}
-              className="mt-3"
-              size={40}
-            />
-            <h3>
-              <b>Modify event</b>
-            </h3>
-          </div>
+              className="flex w-fit flex-row items-center rounded-lg bg-red-500 p-1 pr-4"
+            >
+              <AiFillEdit className="mt-3" size={40} />
+              <h3>
+                <b>Modify event</b>
+              </h3>
+            </div>
+          )}
+
           <CreateEventForm styles={formStyle} defaultValues={event} />
         </>
       );
@@ -70,16 +81,17 @@ const PageContent = ({
         .slice(0, -2);
       return (
         <div>
-          <div className="flex flex-row items-center">
-            <AiOutlineEdit
+          {canEdit && (
+            <div
               onClick={() => setUpdateEvent(!updateEvent)}
-              className="mt-3"
-              size={40}
-            />
-            <h3>
-              <b>Modify event</b>
-            </h3>
-          </div>
+              className="flex w-fit flex-row items-center rounded-lg bg-red-600 p-1 pr-4"
+            >
+              <AiOutlineEdit className="mt-3" size={40} />
+              <h3>
+                <b>Modify event</b>
+              </h3>
+            </div>
+          )}
 
           <div className="mt-2 flex flex-col rounded-lg bg-themebg p-2">
             <div className="flex flex-col">

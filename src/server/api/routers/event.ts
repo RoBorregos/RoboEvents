@@ -12,7 +12,13 @@ import {
 
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env.mjs";
-import { compareRole, getHighestRole, onlyUpperRole } from "~/utils/role";
+import {
+  compareRole,
+  getHighestRole,
+  getRoleOrLower,
+  onlyUpperRole,
+  roleOrLower,
+} from "~/utils/role";
 import { EventModel } from "~/zod/types";
 import { getDays, generateDates } from "~/utils/dates";
 import { getImageLink } from "~/server/supabase";
@@ -27,7 +33,7 @@ export const eventRouter = createTRPCRouter({
   getModifyEventInfo: publicProcedure
     .input(z.object({ id: z.string().nullish() }))
     .query(async ({ input, ctx }) => {
-      if (!input.id || !ctx.session?.user?.role) return null;
+      if (!input.id) return null;
 
       const event = await ctx.prisma.event.findUnique({
         where: {
@@ -45,7 +51,7 @@ export const eventRouter = createTRPCRouter({
           confirmed: true,
         },
       });
-
+    
       if (!event) return null;
 
       // Only check if user can see the event. Modification permission is checked in the mutation
@@ -77,6 +83,53 @@ export const eventRouter = createTRPCRouter({
       return startDate;
     }),
 
+  getVisibleEventIds: publicProcedure.query(async ({ ctx }) => {
+    const visibleEvents =
+      roleOrLower[ctx.session?.user?.role ?? "unauthenticated"];
+    const events = await ctx.prisma.event.findMany({
+      where: {
+        visibility: {
+          in: visibleEvents,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    return events;
+  }),
+
+  getEventById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const visibleEvents = getRoleOrLower(ctx.session?.user?.role);
+      const event = await ctx.prisma.event.findFirst({
+        where: {
+          id: input.id,
+          visibility: {
+            in: visibleEvents,
+          },
+        },
+      });
+
+      return event;
+    }),
+
+  canEdit: publicProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.id || !ctx.session?.user?.role || !ctx.session.user.id)
+        return false;
+
+      const canEditEvent = await canEditOrCreateEvent({
+        eventId: input.id,
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        userRole: ctx.session.user.role,
+      });
+      return canEditEvent;
+    }),
+
   modifyOrCreateEvent: protectedProcedure
     .input(EventModel)
     .mutation(async ({ input, ctx }) => {
@@ -91,10 +144,19 @@ export const eventRouter = createTRPCRouter({
         console.log("Error: ", error);
         return false;
       }
+      const canContinue = await canEditOrCreateEvent({
+        eventId: input.id,
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        userRole: ctx.session?.user?.role ?? "",
+      });
+      if (!canContinue) return false;
 
       if (!input.id)
         input.id = `${ctx.session.user.id}-${Date.now().toString()}`;
 
+      console.log("Event time server:")
+      console.log(input.startTime.toISOString())
       // Create the event.
 
       // Obtain needed data
@@ -196,6 +258,31 @@ export const eventRouter = createTRPCRouter({
       return true;
     }),
 });
+
+const canEditOrCreateEvent = async ({
+  eventId,
+  prisma,
+  userId,
+  userRole,
+}: {
+  eventId: string | undefined | null;
+  prisma: Prisma;
+  userId: string;
+  userRole: string;
+}) => {
+  try {
+    await validateModifyEventPermissions({
+      eventId: eventId,
+      prisma: prisma,
+      userId: userId,
+      userRole: userRole,
+    });
+  } catch (error) {
+    console.log("Error: ", error);
+    return false;
+  }
+  return true;
+};
 
 const validateModifyEventPermissions = async ({
   eventId,
