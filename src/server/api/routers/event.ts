@@ -30,6 +30,39 @@ import { getImageLink } from "~/server/supabase";
 // start time (js date) & end time (js date) & RRule.
 
 export const eventRouter = createTRPCRouter({
+  getConciseEventInfo: publicProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.id) return null;
+
+      const event = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.id,
+        },
+        select: {
+          name: true,
+          description: true,
+          image: true,
+          location: true,
+          visibility: true,
+          tags: true,
+        },
+      });
+
+      if (!event) return null;
+
+      // Only check if user can see the event. Modification permission is checked in the mutation
+      if (
+        compareRole({
+          requiredRole: event.visibility,
+          userRole: ctx.session?.user?.role,
+        })
+      )
+        return event;
+
+      return null;
+    }),
+
   getModifyEventInfo: publicProcedure
     .input(z.object({ id: z.string().nullish() }))
     .query(async ({ input, ctx }) => {
@@ -51,7 +84,7 @@ export const eventRouter = createTRPCRouter({
           confirmed: true,
         },
       });
-    
+
       if (!event) return null;
 
       // Only check if user can see the event. Modification permission is checked in the mutation
@@ -98,6 +131,38 @@ export const eventRouter = createTRPCRouter({
     });
     return events;
   }),
+  getEventOwners: publicProcedure
+    .input(z.object({ eventId: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.eventId) return false;
+
+      const eventOwners = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.eventId,
+        },
+        select: {
+          owners: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!eventOwners) return false;
+
+      return eventOwners.owners.map((owner) => {
+        if (owner.username) {
+          return { id: owner.id, info: owner.username };
+        } else if (owner.name) {
+          return { id: owner.id, info: owner.name };
+        } else {
+          return { id: owner.id, info: owner.id };
+        }
+      });
+    }),
 
   getEventById: publicProcedure
     .input(z.object({ id: z.string() }))
@@ -155,8 +220,6 @@ export const eventRouter = createTRPCRouter({
       if (!input.id)
         input.id = `${ctx.session.user.id}-${Date.now().toString()}`;
 
-      console.log("Event time server:")
-      console.log(input.startTime.toISOString())
       // Create the event.
 
       // Obtain needed data

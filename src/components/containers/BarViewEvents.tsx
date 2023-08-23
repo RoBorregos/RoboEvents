@@ -2,23 +2,27 @@ import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
 import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ImCheckboxUnchecked, ImCheckboxChecked } from "react-icons/im";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
-import EventModify from "../events/EventModify";
+import EventView from "../events/EventView";
 import { DateStamp } from "@prisma/client";
 
 const BarViewEvents = () => {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState(getToday());
   const [useDate, setUseDate] = useState(false);
   const [previousEvents, setPreviousEvents] = useState(false);
   const [yearlyEvents, setYearlyEvents] = useState(false);
   const [hideRepeatedEvents, setHideRepeatedEvents] = useState(false);
-  
+
   const { data: eventIds, isLoading } = api.dateStamp.getEventsByTime.useQuery(
     {
-      start: getStartDate({date: time, previous: previousEvents, monthly: !yearlyEvents}).toISOString(),
-      end: getEndDate({date: time, monthly: !yearlyEvents}).toISOString(),
+      start: getStartDate({
+        date: time,
+        previous: previousEvents,
+        monthly: !yearlyEvents,
+      }).toISOString(),
+      end: getEndDate({ date: time, monthly: !yearlyEvents }).toISOString(),
       unique: hideRepeatedEvents,
     },
     {
@@ -175,11 +179,9 @@ const PageContent = ({
                 events[i]?.map((stamp) => {
                   addJSX = true;
                   return (
-                    <EventModify
-                      className="mx-2"
-                      eventId={stamp.eventId}
-                      key={stamp.id}
-                    />
+                    <EventContainer key={stamp.id}>
+                      <EventView className="mx-2 " eventId={stamp.eventId} />
+                    </EventContainer>
                   );
                 })
               ) : (
@@ -204,14 +206,24 @@ const PageContent = ({
       );
     } else {
       return (
-        <div className="flex flex-row flex-wrap ">
+        <div className="flex flex-row flex-wrap justify-around md:justify-normal">
           {timeStamps.map((stamp) => (
-            <EventModify className="mx-2" eventId={stamp.eventId} key={stamp.id} />
+            <EventContainer key={stamp.id}>
+              <EventView className="mx-2" eventId={stamp.eventId} />
+            </EventContainer>
           ))}
         </div>
       );
     }
   }
+};
+
+const EventContainer = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="mb-2 flex w-5/6 justify-around md:w-1/2 lg:w-1/3">
+      {children}
+    </div>
+  );
 };
 
 const eventsPerMonth = ({
@@ -246,14 +258,19 @@ const capitalizeString = (word: string | undefined | null) => {
   return "";
 };
 
-
-
-const getStartDate = ({date, previous, monthly}: {date: Date, previous: boolean, monthly: boolean}) => {
-
-  if (isNaN(date.getTime())){
+const getStartDate = ({
+  date,
+  previous,
+  monthly,
+}: {
+  date: Date;
+  previous: boolean;
+  monthly: boolean;
+}) => {
+  if (isNaN(date.getTime())) {
     console.log("Invalid date");
     return new Date();
-  } 
+  }
 
   let start;
 
@@ -270,9 +287,9 @@ const getStartDate = ({date, previous, monthly}: {date: Date, previous: boolean,
       startMonth.setDate(1);
       startMonth.setHours(0, 0, 0, 0);
 
-      const today = new Date();
+      const today = getToday();
       today.setDate(today.getDate() - 1);
-      today.setHours(0, 0, 0, 0);
+
       if (today > startMonth) {
         start = today;
       } else {
@@ -283,18 +300,17 @@ const getStartDate = ({date, previous, monthly}: {date: Date, previous: boolean,
       startYear.setMonth(0);
       startYear.setDate(1);
       startYear.setHours(0, 0, 0, 0);
-      const today = new Date();
+      const today = getToday();
       today.setDate(today.getDate() - 1);
       start = startYear > today ? startYear : today;
     }
   }
 
   return start;
-}
+};
 
-const getEndDate = ({date, monthly}: {date: Date, monthly: boolean}) => {
-
-  if (isNaN(date.getTime())){
+const getEndDate = ({ date, monthly }: { date: Date; monthly: boolean }) => {
+  if (isNaN(date.getTime())) {
     console.log("Invalid date");
     return new Date();
   }
@@ -311,4 +327,10 @@ const getEndDate = ({date, monthly}: {date: Date, monthly: boolean}) => {
   }
 
   return end;
-}
+};
+
+const getToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};

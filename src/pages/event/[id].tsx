@@ -19,7 +19,7 @@ export default function AddEvent() {
   return (
     <Layout>
       <PageBody>
-        <PageTitle text="Modify an event" />
+        <PageTitle text="Event Details" />
         {session ? (
           <EventModify eventId={id as string ?? "-1"} />
         ) : (
