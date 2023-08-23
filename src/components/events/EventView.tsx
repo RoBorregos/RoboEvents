@@ -10,16 +10,17 @@ import Link from "next/link";
 import { AiOutlineExpandAlt } from "react-icons/ai";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
 import { GenerateTags } from "~/components/tags/GenerateTags";
+import type { DateStamp } from "@prisma/client";
 
 const EventView = ({
-  eventId,
+  dateStamp,
   className,
 }: {
-  eventId: string | undefined | null;
+  dateStamp: DateStamp;
   className?: string;
 }) => {
   const { data: event, isLoading } = api.event.getConciseEventInfo.useQuery({
-    id: eventId,
+    id: dateStamp.eventId,
   });
 
   return (
@@ -29,7 +30,13 @@ const EventView = ({
         className
       )}
     >
-      <PageContent eventID={eventId} event={event} isLoading={isLoading} />
+      <PageContent
+        eventID={dateStamp.eventId}
+        event={event}
+        isLoading={isLoading}
+        start={dateStamp.start}
+        end={dateStamp.end}
+      />
     </div>
   );
 };
@@ -40,10 +47,14 @@ const PageContent = ({
   eventID,
   event,
   isLoading,
+  start,
+  end,
 }: {
   eventID: string | null | undefined;
   event: RouterOutputs["event"]["getConciseEventInfo"] | undefined | null;
   isLoading: boolean;
+  start: Date;
+  end: Date;
 }) => {
   const { data: canEdit } = api.event.canEdit.useQuery(
     { id: eventID },
@@ -103,11 +114,21 @@ const PageContent = ({
                 onClick={() => setDisplayDetails(true)}
               />
             )}
+            <div className="flex flex-col flex-wrap w-full sm:flex-row">
+              <PageSubtitle
+                className="mb-0 text-left text-white"
+                text={acotateText({ text: event.name, threshold: 40 })}
+              />
 
-            <PageSubtitle
-              className="mb-0 text-center text-white"
-              text={acotateText({ text: event.name, threshold: 40 })}
-            />
+              <div className="sm:ml-auto flex flex-col text-left sm:text-right mt-2 sm:mt-0">
+                <p>
+                  <b>{start.toLocaleDateString()}</b>
+                </p>
+                <p>
+                  <b>{getTimeString({ start, end })}</b>
+                </p>
+              </div>
+            </div>
           </div>
           <div className="flex w-full flex-col items-center rounded-lg bg-themebg p-2 xsm:flex-row">
             <ValidImage
@@ -115,7 +136,7 @@ const PageContent = ({
               src={event.image}
             />
 
-            <div className="flex max-h-40 flex-col justify-between overflow-y-auto xsm:h-40">
+            <div className="flex flex-col justify-between overflow-y-auto xsm:h-40">
               <div>
                 <p className="mb-3">
                   <b>Description:</b>{" "}
@@ -148,6 +169,47 @@ const PageContent = ({
       />
     );
   }
+};
+
+const getTimeString = ({ start, end }: { start: Date; end: Date }) => {
+  const startString = start.toLocaleString();
+  const endString = end.toLocaleString();
+
+  const startHour = startString.split(", ")[1];
+  const endHour = endString.split(", ")[1];
+
+  let startT;
+  let endT;
+
+  if (startHour) {
+    startT = startHour?.slice(0, -6);
+  }
+  if (endHour) {
+    endT = endHour?.slice(0, -6);
+  }
+
+  // Add pm or am at the end if both are the same
+  let addFinal = "";
+  if (startHour?.endsWith("AM") && endHour?.endsWith("AM")) {
+    addFinal = " AM";
+  } else if (startHour?.endsWith("PM") && endHour?.endsWith("PM")) {
+    addFinal = " PM";
+  } else {
+    startT = startT + " " + startHour?.slice(-2);
+    endT = endT + " " + endHour?.slice(-2);
+  }
+
+  return `${startT ?? "???"} - ${endT ?? "???"} ${addFinal}`;
+};
+
+const getCompleteHour = ({ date }: { date: Date }) => {
+  const strDate = date.toLocaleString();
+
+  const completeHour = strDate.split(", ")[1];
+
+  if (!completeHour) return "No time";
+
+  return completeHour;
 };
 
 const acotateText = ({

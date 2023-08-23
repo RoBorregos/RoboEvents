@@ -180,7 +180,7 @@ const PageContent = ({
                   addJSX = true;
                   return (
                     <EventContainer key={stamp.id}>
-                      <EventView className="mx-2 " eventId={stamp.eventId} />
+                      <EventView className="mx-2 " dateStamp={stamp} />
                     </EventContainer>
                   );
                 })
@@ -209,7 +209,7 @@ const PageContent = ({
         <div className="flex flex-row flex-wrap justify-around md:justify-normal">
           {timeStamps.map((stamp) => (
             <EventContainer key={stamp.id}>
-              <EventView className="mx-2" eventId={stamp.eventId} />
+              <EventView className="mx-2" dateStamp={stamp} />
             </EventContainer>
           ))}
         </div>
