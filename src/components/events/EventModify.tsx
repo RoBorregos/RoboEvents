@@ -7,8 +7,10 @@ import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
 import { twMerge } from "tailwind-merge";
 import { useSearchParams } from "next/navigation";
-import { GenerateTags } from "../tags/GenerateTags";
-import { GenerateOwners } from "../user/GenerateOwners";
+import { GenerateTags } from "../general/Generate";
+import { GenerateOwners } from "~/components/general/Generate";
+import { getTimeString } from "./EventView";
+import { GenerateConfirmed } from "~/components/general/Generate";
 
 const formStyle: CreateEventStyle = {
   label: "text-white mr-2 align-middle flex items-center h-10",
@@ -28,6 +30,7 @@ const EventModify = ({
   const { data: event, isLoading } = api.event.getModifyEventInfo.useQuery({
     id: eventId,
   });
+
   const searchParams = useSearchParams();
   const edit = searchParams.get("edit");
 
@@ -69,6 +72,17 @@ const PageContent = ({
       refetchOnReconnect: false,
     }
   );
+
+  const { data: startDate, status: dateStatus } =
+    api.event.getEventStart.useQuery(
+      {
+        id: eventID ?? "",
+      },
+      {
+        refetchOnReconnect: false,
+        refetchOnWindowFocus: false,
+      }
+    );
 
   if (isLoading) {
     return (
@@ -121,14 +135,25 @@ const PageContent = ({
                 className="mb-0 text-center text-3xl text-white"
                 text={event.name}
               />
+              <div className="mt-2 flex flex-col text-center sm:mt-0">
+                <p>
+                  <b>{startDate?.start.toLocaleDateString()}</b>
+                </p>
+                <p>
+                  {getTimeString({
+                    start: startDate?.start,
+                    end: startDate?.end,
+                  })}
+                </p>
+              </div>
             </div>
-            <div className="flex w-full flex-col-reverse items-center rounded-lg bg-themebg p-2 md:flex-row">
+            <div className="flex w-full flex-col items-center rounded-lg bg-themebg p-2 md:flex-row">
               <ValidImage
                 className="m-3 h-80 w-80 rounded-lg"
                 src={event.image}
               />
 
-              <div className="flex h-80 w-80 flex-col justify-between overflow-y-auto">
+              <div className="flex flex-col justify-between overflow-y-auto sm:h-80 sm:w-80">
                 <p>
                   <b>Description:</b> {event.description}
                 </p>
@@ -137,21 +162,29 @@ const PageContent = ({
                 </p>
                 <p>
                   <b>Tags:</b>
-                  <div className="flex flex-row flex-wrap">
+                  <div className="mt-1 flex flex-row flex-wrap">
                     <GenerateTags tags={event.tags} />
                   </div>
                 </p>
                 <p>
-                  <b>Owners:</b> 
-                  <div className="flex flex-row flex-wrap">
+                  <b>Owners:</b>
+                  <div className="mt-1 flex flex-row flex-wrap">
                     <GenerateOwners eventID={event.id} />
                   </div>
                 </p>
-                <p>
-                  <b>Visibility:</b> {event.visibility}
+                <p className="mt-2">
+                  <b>Visibility:</b>{" "}
+                  <div className="mb-2 mt-1 flex flex-row flex-wrap">
+                    <span className="rounded-lg bg-blue-600 p-1">
+                      {event.visibility}
+                    </span>
+                  </div>
                 </p>
                 <p>
                   <b>Confirmed:</b> {tagText}
+                  <div className="mt-1 flex flex-row flex-wrap">
+                    <GenerateConfirmed eventID={event.id} />
+                  </div>
                 </p>
               </div>
             </div>

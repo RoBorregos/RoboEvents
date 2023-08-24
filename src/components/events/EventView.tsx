@@ -9,7 +9,7 @@ import { twMerge } from "tailwind-merge";
 import Link from "next/link";
 import { AiOutlineExpandAlt } from "react-icons/ai";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
-import { GenerateTags } from "~/components/tags/GenerateTags";
+import { GenerateTags } from "~/components/general/Generate";
 import type { DateStamp } from "@prisma/client";
 
 const EventView = ({
@@ -114,13 +114,13 @@ const PageContent = ({
                 onClick={() => setDisplayDetails(true)}
               />
             )}
-            <div className="flex flex-col flex-wrap w-full sm:flex-row">
+            <div className="flex w-full flex-col flex-wrap sm:flex-row">
               <PageSubtitle
                 className="mb-0 text-left text-white"
                 text={acotateText({ text: event.name, threshold: 40 })}
               />
 
-              <div className="sm:ml-auto flex flex-col text-left sm:text-right mt-2 sm:mt-0">
+              <div className="mt-2 flex flex-col text-left sm:ml-auto sm:mt-0 sm:text-right">
                 <p>
                   <b>{start.toLocaleDateString()}</b>
                 </p>
@@ -152,7 +152,7 @@ const PageContent = ({
                 <p>
                   <b>Tags:</b>
                 </p>
-                <div className="flex flex-row flex-wrap">
+                <div className="flex flex-row flex-wrap mt-1">
                   <GenerateTags maxTags={2} tags={event.tags} />
                 </div>
               </div>
@@ -171,9 +171,15 @@ const PageContent = ({
   }
 };
 
-const getTimeString = ({ start, end }: { start: Date; end: Date }) => {
-  const startString = start.toLocaleString();
-  const endString = end.toLocaleString();
+export const getTimeString = ({
+  start,
+  end,
+}: {
+  start: Date | undefined | null;
+  end: Date | undefined | null;
+}) => {
+  const startString = start ? start.toLocaleString() : "???";
+  const endString = end ? end.toLocaleString() : "???";
 
   const startHour = startString.split(", ")[1];
   const endHour = endString.split(", ")[1];
@@ -195,21 +201,11 @@ const getTimeString = ({ start, end }: { start: Date; end: Date }) => {
   } else if (startHour?.endsWith("PM") && endHour?.endsWith("PM")) {
     addFinal = " PM";
   } else {
-    startT = startT + " " + startHour?.slice(-2);
-    endT = endT + " " + endHour?.slice(-2);
+    startT = (startT ?? "") + " " + (startHour?.slice(-2) ?? "");
+    endT = (endT ?? "") + " " + (endHour?.slice(-2) ?? "");
   }
 
   return `${startT ?? "???"} - ${endT ?? "???"} ${addFinal}`;
-};
-
-const getCompleteHour = ({ date }: { date: Date }) => {
-  const strDate = date.toLocaleString();
-
-  const completeHour = strDate.split(", ")[1];
-
-  if (!completeHour) return "No time";
-
-  return completeHour;
 };
 
 const acotateText = ({

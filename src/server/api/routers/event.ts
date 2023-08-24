@@ -46,6 +46,11 @@ export const eventRouter = createTRPCRouter({
           location: true,
           visibility: true,
           tags: true,
+          owners: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
@@ -53,8 +58,10 @@ export const eventRouter = createTRPCRouter({
 
       // Only check if user can see the event. Modification permission is checked in the mutation
       if (
-        compareRole({
-          requiredRole: event.visibility,
+        canSeeEvent({
+          visibility: event.visibility,
+          ownersId: event.owners.map((owner) => owner.id),
+          userId: ctx.session?.user?.id,
           userRole: ctx.session?.user?.role,
         })
       )
@@ -89,8 +96,10 @@ export const eventRouter = createTRPCRouter({
 
       // Only check if user can see the event. Modification permission is checked in the mutation
       if (
-        compareRole({
-          requiredRole: event.visibility,
+        canSeeEvent({
+          visibility: event.visibility,
+          ownersId: event.owners.map((owner) => owner.id),
+          userId: ctx.session?.user?.id,
           userRole: ctx.session?.user?.role,
         })
       )
@@ -121,9 +130,20 @@ export const eventRouter = createTRPCRouter({
       roleOrLower[ctx.session?.user?.role ?? "unauthenticated"];
     const events = await ctx.prisma.event.findMany({
       where: {
-        visibility: {
-          in: visibleEvents,
-        },
+        OR: [
+          {
+            visibility: {
+              in: visibleEvents,
+            },
+          },
+          {
+            owners: {
+              some: {
+                id: ctx.session?.user?.id,
+              },
+            },
+          },
+        ],
       },
       select: {
         id: true,
@@ -131,6 +151,42 @@ export const eventRouter = createTRPCRouter({
     });
     return events;
   }),
+  getEventConfirmedUsers: publicProcedure
+    .input(z.object({ eventId: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.eventId) return false;
+
+      const confirmedUsers = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.eventId,
+        },
+        select: {
+          confirmed: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      // Share the least amount of data possible with the front-end.
+      const confirmedUsersInfo = confirmedUsers?.confirmed.map((user) => {
+        if (user.username) {
+          return { id: user.id, info: user.username };
+        } else if (user.name) {
+          return { id: user.id, info: user.name };
+        } else {
+          return { id: user.id, info: user.id };
+        }
+      });
+
+      if (!confirmedUsersInfo || confirmedUsersInfo.length == 0) return false;
+
+      return confirmedUsersInfo;
+    }),
+
   getEventOwners: publicProcedure
     .input(z.object({ eventId: z.string().nullish() }))
     .query(async ({ input, ctx }) => {
@@ -409,4 +465,28 @@ const validateModifyEventPermissions = async ({
       });
     }
   }
+};
+
+const canSeeEvent = ({
+  visibility,
+  ownersId,
+  userId,
+  userRole,
+}: {
+  visibility: string;
+  ownersId: string[];
+  userId: string | undefined | null;
+  userRole: string | undefined | null;
+}) => {
+  if (
+    compareRole({
+      requiredRole: visibility,
+      userRole: userRole ?? "unauthenticated",
+    })
+  )
+    return true;
+
+  if (ownersId.includes(userId ?? "-1")) return true;
+
+  return false;
 };

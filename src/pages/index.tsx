@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import Layout from "~/components/layout/Layout";
 import { PageBody } from "~/components/general/PageElements";
 import BarViewEvents from "~/components/containers/BarViewEvents";
