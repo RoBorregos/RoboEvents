@@ -2,9 +2,6 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-  adminProcedure,
-  communityProcedure,
-  organizationProcedure,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
@@ -107,8 +104,70 @@ export const userRouter = createTRPCRouter({
           username: input,
         },
       });
-      if (!user) return true;
+      if (!user || user.id === ctx.session?.user.id) return true;
       return false;
+    }),
+
+  isConfirmed: publicProcedure
+    .input(
+      z.object({ eventId: z.string().nullish(), userId: z.string().nullish() })
+    )
+    .query(async ({ input, ctx }) => {
+      if (!input.eventId || !input.userId) return false;
+
+      const found = await ctx.prisma.event.findFirst({
+        where: {
+          id: input.eventId,
+          confirmed: {
+            some: {
+              id: input.userId,
+            },
+          },
+        },
+        select: {
+          confirmed: true,
+        },
+      });
+      if (found) return true;
+      return false;
+    }),
+  // Return true if a change was made
+  setConfirmed: protectedProcedure
+    .input(
+      z.object({
+        eventId: z.string().nullish(),
+        userId: z.string().nullish(),
+        confirmed: z.boolean(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!input.eventId || !input.userId) return false;
+
+      if (input.confirmed) {
+        await ctx.prisma.event.update({
+          where: {
+            id: input.eventId,
+          },
+          data: {
+            confirmed: {
+              connect: { id: input.userId },
+            },
+          },
+        });
+      } else {
+        await ctx.prisma.event.update({
+          where: {
+            id: input.eventId,
+          },
+          data: {
+            confirmed: {
+              disconnect: { id: input.userId },
+            },
+          },
+        });
+      }
+
+      return true;
     }),
 
   updateProfile: protectedProcedure
