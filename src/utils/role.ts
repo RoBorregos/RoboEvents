@@ -1,6 +1,11 @@
-// interface Roles {
-//   role: "admin" | "organizationMember" | "communityMember" | "authenticated" | "unauthenticated";
-// }
+interface Roles {
+  role:
+    | "admin"
+    | "organizationMember"
+    | "communityMember"
+    | "authenticated"
+    | "unauthenticated";
+}
 
 const adminOrUpper = ["admin"];
 const organizationMemberOrUpper = [...adminOrUpper, "organizationMember"];
@@ -58,10 +63,8 @@ export const compareRole = ({
   requiredRole: string;
   userRole: string | undefined;
 }) => {
+  if (requiredRole === "unauthenticated") return 1;
 
-  if (requiredRole === "unauthenticated")
-    return 1;
-  
   if (!userRole) return 0;
   const t = roleOrUpper[requiredRole];
 
@@ -70,12 +73,15 @@ export const compareRole = ({
   return 0;
 };
 
-export const onlyUpperRole = (
-  requiredRole: string,
-  userRole: string | undefined
-) => {
+export const onlyUpperRole = ({
+  upperThan,
+  userRole,
+}: {
+  upperThan: string;
+  userRole: string | undefined;
+}) => {
   if (!userRole) return 0;
-  const t = upperRole[requiredRole];
+  const t = upperRole[upperThan];
 
   if (t && t.includes(userRole)) return 1;
 
@@ -86,12 +92,12 @@ type UserRole = {
   role: string | null;
 };
 
-export const getHighestRole = (roles: UserRole[]) => {
-  let highestRole = "unauthenticated";
+export const getHighestRole = (roles: UserRole[], startRole?: string) => {
+  let highestRole = startRole ?? "unauthenticated";
 
   for (const role of roles) {
     if (!role.role) continue;
-    if (onlyUpperRole(role.role, highestRole)) {
+    if (onlyUpperRole({ upperThan: highestRole, userRole: role.role })) {
       highestRole = role.role;
     }
   }

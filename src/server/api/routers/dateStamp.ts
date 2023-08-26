@@ -38,9 +38,20 @@ export const dateRouter = createTRPCRouter({
             lt: end,
           },
           event: {
-            visibility: {
-              in: visibleEvents,
-            },
+            OR: [
+              {
+                visibility: {
+                  in: visibleEvents,
+                },
+              },
+              {
+                owners: {
+                  some: {
+                    id: ctx.session?.user.id,
+                  },
+                },
+              },
+            ],
           },
         },
         select: {

@@ -13,7 +13,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
   const routes = [
     { name: "Home", path: "/" },
     { name: "Add event", path: "/add-event" },
-    { name: "About", path: "/about" },
+    {
+      name: "About",
+      path: "https://github.com/Oscar-gg/EventManager#readme",
+      target: "_blank" as const,
+    },
   ];
 
   return (
@@ -23,12 +27,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
         <meta name="description" content={description} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <NavBar
-        routes={routes}
-      />
-      <main>
-        {children}
-      </main>
+      <NavBar routes={routes} />
+      <main>{children}</main>
     </>
   );
 };

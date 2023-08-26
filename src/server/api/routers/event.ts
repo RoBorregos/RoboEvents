@@ -251,25 +251,34 @@ export const eventRouter = createTRPCRouter({
       return canEditEvent;
     }),
 
+  getStartAndEnd: publicProcedure
+    .input(z.object({ eventId: z.string().nullish(), date:z.string().nullish() }))
+    .query(async ({ ctx, input }) => {
+      if (!input.eventId) return false;
+      const start = await ctx.prisma.dateStamp.findFirst({
+        where: {
+          eventId: input.eventId,
+          start: {
+            gte: new Date(input.date ?? 0),
+          },
+        },
+        orderBy: {
+          start: "asc",
+        },
+      });
+
+      return start;
+    }),
+
   modifyOrCreateEvent: protectedProcedure
     .input(EventModel)
     .mutation(async ({ input, ctx }) => {
-      try {
-        await validateModifyEventPermissions({
-          eventId: input.id,
-          prisma: ctx.prisma,
-          userId: ctx.session.user.id,
-          userRole: ctx.session?.user?.role ?? "",
-        });
-      } catch (error) {
-        console.log("Error: ", error);
-        return false;
-      }
       const canContinue = await canEditOrCreateEvent({
         eventId: input.id,
         prisma: ctx.prisma,
         userId: ctx.session.user.id,
         userRole: ctx.session?.user?.role ?? "",
+        logError: true,
       });
       if (!canContinue) return false;
 
@@ -296,7 +305,7 @@ export const eventRouter = createTRPCRouter({
       });
 
       if (!isCreatorPresent) {
-        newOwners.push({ id: ctx.session?.user?.id });
+        newOwners.push({ id: ctx.session.user.id });
       }
 
       const newTags = input.tags.map((tag) => {
@@ -383,11 +392,13 @@ const canEditOrCreateEvent = async ({
   prisma,
   userId,
   userRole,
+  logError,
 }: {
   eventId: string | undefined | null;
   prisma: Prisma;
   userId: string;
   userRole: string;
+  logError?: boolean;
 }) => {
   try {
     await validateModifyEventPermissions({
@@ -397,7 +408,10 @@ const canEditOrCreateEvent = async ({
       userRole: userRole,
     });
   } catch (error) {
-    console.log("Error: ", error);
+    if (logError) {
+      console.log("Error: ");
+      console.log(error);
+    }
     return false;
   }
   return true;
@@ -446,9 +460,8 @@ const validateModifyEventPermissions = async ({
           role: true,
         },
       });
-      const highestRole = getHighestRole(users);
-
-      if (!onlyUpperRole(highestRole, userRole)) {
+      const highestRole = getHighestRole(users, "organizationMember");
+      if (!onlyUpperRole({ upperThan: highestRole, userRole: userRole })) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: `You are not authorized to modify this event.`,

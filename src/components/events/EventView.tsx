@@ -56,13 +56,7 @@ const PageContent = ({
   start: Date;
   end: Date;
 }) => {
-  const { data: canEdit } = api.event.canEdit.useQuery(
-    { id: eventID },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    }
-  );
+  const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
   const [displayDetails, setDisplayDetails] = useState(false);
   if (isLoading) {
     return (
@@ -152,7 +146,7 @@ const PageContent = ({
                 <p>
                   <b>Tags:</b>
                 </p>
-                <div className="flex flex-row flex-wrap mt-1">
+                <div className="mt-1 flex flex-row flex-wrap">
                   <GenerateTags maxTags={2} tags={event.tags} />
                 </div>
               </div>

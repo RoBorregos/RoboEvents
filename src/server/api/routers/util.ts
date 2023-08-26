@@ -7,6 +7,7 @@ import {
   communityProcedure,
   organizationProcedure,
 } from "~/server/api/trpc";
+import { getRoleOrLower } from "~/utils/role";
 
 export const utilRouter = createTRPCRouter({
   validImage: publicProcedure
@@ -18,9 +19,19 @@ export const utilRouter = createTRPCRouter({
     }),
 
   getTags: publicProcedure.query(async ({ ctx }) => {
+    const visibleEvents = getRoleOrLower(ctx.session?.user?.role);
     const tags = await ctx.prisma.tag.findMany({
       select: {
         name: true,
+      },
+      where: {
+        events: {
+          some: {
+            visibility: {
+              in: visibleEvents,
+            },
+          },
+        },
       },
     });
     return tags;

@@ -6,7 +6,11 @@ import Link from "next/link";
 // TODO:
 // Make current page be highlighted in the navbar.
 
-const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
+const NavBar = ({
+  routes,
+}: {
+  routes: { name: string; path: string; target?: "_blank" | "self" }[];
+}) => {
   const { data: sessionData } = useSession();
 
   const [closed, setClosed] = useState(true); // State of mobile menu
@@ -75,6 +79,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                     href={route.path}
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
                     key={route.name}
+                    target={route.target}
                   >
                     {route.name}
                   </Link>
@@ -142,6 +147,7 @@ const NavBar = ({ routes }: { routes: { name: string; path: string }[] }) => {
                 href={route.path}
                 className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
                 key={route.name}
+                target={route.target}
               >
                 {route.name}
               </Link>

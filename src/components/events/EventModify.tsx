@@ -67,10 +67,6 @@ const PageContent = ({
   const [updateEvent, setUpdateEvent] = useState(editInitial ?? false);
   const { data: canEdit } = api.event.canEdit.useQuery(
     { id: eventID },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    }
   );
 
   const { data: startDate, status: dateStatus } =
@@ -78,10 +74,6 @@ const PageContent = ({
       {
         id: eventID ?? "",
       },
-      {
-        refetchOnReconnect: false,
-        refetchOnWindowFocus: false,
-      }
     );
 
   if (isLoading) {

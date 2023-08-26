@@ -25,10 +25,6 @@ const BarViewEvents = () => {
       end: getEndDate({ date: time, monthly: !yearlyEvents }).toISOString(),
       unique: hideRepeatedEvents,
     },
-    {
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-    }
   );
 
   // Avoid different hours in server and component
@@ -218,7 +214,7 @@ const PageContent = ({
   }
 };
 
-const EventContainer = ({ children }: { children: React.ReactNode }) => {
+export const EventContainer = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="mb-2 flex w-5/6 justify-around md:w-1/2 lg:w-1/3">
       {children}

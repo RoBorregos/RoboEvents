@@ -24,8 +24,6 @@ const UserCard = ({ userid }: { userid: string }) => {
       onSuccess: (user) => {
         setPicUrl(user?.image ?? "");
       },
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
     }
   );
 

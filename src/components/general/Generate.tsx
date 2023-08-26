@@ -66,13 +66,7 @@ export const GenerateConfirmed = ({
   eventID: string | undefined | null;
 }) => {
   const { data: confirmed, isLoading } =
-    api.event.getEventConfirmedUsers.useQuery(
-      { eventId: eventID },
-      {
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-      }
-    );
+    api.event.getEventConfirmedUsers.useQuery({ eventId: eventID });
 
   if (isLoading) return <p>Loading...</p>;
   if (!confirmed) return <p>No confirmed users.</p>;
@@ -113,13 +107,9 @@ export const GenerateOwners = ({
 }: {
   eventID: string | undefined | null;
 }) => {
-  const { data: owners, isLoading } = api.event.getEventOwners.useQuery(
-    { eventId: eventID },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    }
-  );
+  const { data: owners, isLoading } = api.event.getEventOwners.useQuery({
+    eventId: eventID,
+  });
 
   if (isLoading) return <p>Loading...</p>;
   return (

@@ -35,13 +35,18 @@ export const CreateEventForm = ({
   const { data: sessionData, status } = useSession();
   const { data: userID } = api.user.getAllUserId.useQuery();
   const { data: tags } = api.util.getTags.useQuery();
+
   const { data: startDate, status: dateStatus } =
     api.event.getEventStart.useQuery({
       id: defaultValues?.id ?? "",
     });
 
   const mutation = api.event.modifyOrCreateEvent.useMutation({
-    onSuccess: () => {
+    onSuccess: (succeeded) => {
+      if (!succeeded) {
+        alert("Event creation or update failed.");
+        return;
+      }
       alert(
         "Event " +
           (defaultValues?.id ? "updated" : "created") +
@@ -93,7 +98,7 @@ export const CreateEventForm = ({
     : null;
   const defaultOwners = defaultValues?.owners.map((owner) => ({
     value: owner.id,
-    label: owner.username,
+    label: owner.username ?? owner.name ?? owner.id,
   }));
   const defaultTags = defaultValues?.tags.map((tag) => ({
     value: tag.name,
@@ -462,7 +467,7 @@ export const CreateEventForm = ({
   );
 };
 
-const getVisibilityOptions = (role: string | undefined | null) => {
+export const getVisibilityOptions = (role: string | undefined | null) => {
   if (!role) role = "unauthenticated";
 
   const visibleRoles = roleOrLower[role];
@@ -470,7 +475,7 @@ const getVisibilityOptions = (role: string | undefined | null) => {
   return visibleRoles?.map((role) => ({ value: role, label: role }));
 };
 
-const getOwnerOptions = (
+export const getOwnerOptions = (
   usersIDs: RouterOutputs["user"]["getAllUserId"] | undefined | null
 ) => {
   if (!usersIDs) return [{ value: "", label: "Loading..." }];
@@ -481,13 +486,13 @@ const getOwnerOptions = (
   }));
 };
 
-const getTagOptions = (
+export const getTagOptions = (
   tags: RouterOutputs["util"]["getTags"] | null | undefined
 ) => {
   return tags?.map((tag) => ({ value: tag.name, label: tag.name }));
 };
 
-const computeDate = (dateWithoutHour: string, time: string) => {
+export const computeDate = (dateWithoutHour: string, time: string) => {
   const [year, month, day] = dateWithoutHour.split("-");
   const [hour, minute] = time.split(":");
 
