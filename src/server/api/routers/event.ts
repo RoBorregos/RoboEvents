@@ -252,7 +252,9 @@ export const eventRouter = createTRPCRouter({
     }),
 
   getStartAndEnd: publicProcedure
-    .input(z.object({ eventId: z.string().nullish(), date:z.string().nullish() }))
+    .input(
+      z.object({ eventId: z.string().nullish(), date: z.string().nullish() })
+    )
     .query(async ({ ctx, input }) => {
       if (!input.eventId) return false;
       const start = await ctx.prisma.dateStamp.findFirst({
@@ -269,7 +271,29 @@ export const eventRouter = createTRPCRouter({
 
       return start;
     }),
+  deleteEvent: protectedProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .mutation(async ({ input, ctx }) => {
+      if (!input.id || !ctx.session?.user?.role || !ctx.session.user.id)
+        return "No id or user role.";
 
+      const canEditEvent = await canEditOrCreateEvent({
+        eventId: input.id,
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        userRole: ctx.session.user.role,
+      });
+
+      if (!canEditEvent) return "You are not authorized to delete this event.";
+
+      await ctx.prisma.event.delete({
+        where: {
+          id: input.id,
+        },
+      });
+
+      return "Event deleted.";
+    }),
   modifyOrCreateEvent: protectedProcedure
     .input(EventModel)
     .mutation(async ({ input, ctx }) => {

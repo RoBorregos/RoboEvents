@@ -15,12 +15,16 @@ import {
 import {
   ChangeEvent,
   Dispatch,
+  FC,
   HtmlHTMLAttributes,
   SetStateAction,
+  useRef,
   useState,
 } from "react";
 import { useSession } from "next-auth/react";
 import EventView from "~/components/events/EventView";
+import { twMerge } from "tailwind-merge";
+import { EventListContainer } from "~/components/general/Containers";
 
 const animatedComponents = makeAnimated();
 
@@ -145,6 +149,14 @@ export default function Find() {
 
   // Use state for the ids to avoid undefined when re-rendering by a change in the filters.
   const [eventsIds, setEventsIds] = useState<string[] | undefined>([]);
+
+  // Refetch on first render
+  const firstRender = useRef(true);
+
+  if (firstRender.current) {
+    refetch();
+    firstRender.current = false;
+  }
 
   return (
     <Layout>
@@ -293,7 +305,7 @@ export default function Find() {
 
 const DisplayEvents = ({ eventIds }: { eventIds: string[] | undefined }) => {
   return (
-    <div className="my-2 flex flex-row flex-wrap">
+    <EventListContainer className="my-2">
       {eventIds?.length ?? 0 > 0 ? (
         eventIds?.map((id) => {
           return (
@@ -305,7 +317,7 @@ const DisplayEvents = ({ eventIds }: { eventIds: string[] | undefined }) => {
       ) : (
         <PageSubtitle text="No events found." />
       )}
-    </div>
+    </EventListContainer>
   );
 };
 

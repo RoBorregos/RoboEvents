@@ -1,7 +1,7 @@
 import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
 import { type CreateEventStyle, CreateEventForm } from "./CreateEventForm";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
 import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
@@ -11,6 +11,7 @@ import { AiOutlineExpandAlt } from "react-icons/ai";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
 import { GenerateTags } from "~/components/general/Generate";
 import type { DateStamp } from "@prisma/client";
+import { OptionsContainer, OptionsInnerContainer } from "../general/Containers";
 
 const EventView = ({
   dateStamp,
@@ -56,7 +57,15 @@ const PageContent = ({
   start: Date;
   end: Date;
 }) => {
+  const context = api.useContext();
   const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
+  const mutation = api.event.deleteEvent.useMutation({
+    onSuccess: (msg) => {
+      alert(msg);
+      void context.event.invalidate();
+    },
+  });
+
   const [displayDetails, setDisplayDetails] = useState(false);
   if (isLoading) {
     return (
@@ -66,30 +75,54 @@ const PageContent = ({
     return (
       <div className="w-full">
         {displayDetails && (
-          <div className="flex flex-row">
+          <div className="flex flex-row flex-wrap items-center">
             {canEdit && (
-              <Link
-                href={{
-                  pathname: `/event/${eventID ?? "-1"}`,
-                  query: { edit: "true" },
+              <OptionsContainer>
+                <Link
+                  href={{
+                    pathname: `/event/${eventID ?? "-1"}`,
+                    query: { edit: "true" },
+                  }}
+                >
+                  <OptionsInnerContainer className="bg-blue-600">
+                    <AiOutlineEdit className="m-1" size={40} />
+                    <h3>
+                      <b>Modify event</b>
+                    </h3>
+                  </OptionsInnerContainer>
+                </Link>
+              </OptionsContainer>
+            )}
+            <OptionsContainer>
+              <Link href={`/event/${eventID ?? "-1"}`}>
+                <OptionsInnerContainer className="bg-green-800">
+                  <AiOutlineExpandAlt className="m-1" size={35} />
+                  <h3 className="inline-block">
+                    <b>View Details</b>
+                  </h3>
+                </OptionsInnerContainer>
+              </Link>
+            </OptionsContainer>
+            {canEdit && (
+              <OptionsContainer
+                onClick={() => {
+                  const confirmDeleteEvent = confirm(
+                    "Are you sure you want to delete this event? This action can't be undone."
+                  );
+
+                  if (confirmDeleteEvent) {
+                    mutation.mutate({ id: eventID });
+                  }
                 }}
               >
-                <div className="mr-2 flex w-fit flex-row items-center rounded-lg bg-red-600 p-1 pr-4">
-                  <AiOutlineEdit className="mt-3" size={40} />
-                  <h3>
-                    <b>Modify event</b>
+                <OptionsInnerContainer className="bg-red-600">
+                  <AiOutlineEdit className="m-1" size={40} />
+                  <h3 className="inline-block">
+                    <b>Delete event</b>
                   </h3>
-                </div>
-              </Link>
+                </OptionsInnerContainer>
+              </OptionsContainer>
             )}
-            <Link href={`/event/${eventID ?? "-1"}`}>
-              <div className="flex w-fit flex-row items-center rounded-lg bg-green-800 p-1 pr-4">
-                <AiOutlineExpandAlt className="my-2" size={35} />
-                <h3>
-                  <b>View Details</b>
-                </h3>
-              </div>
-            </Link>
           </div>
         )}
 

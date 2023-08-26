@@ -7,6 +7,7 @@ import { ImCheckboxUnchecked, ImCheckboxChecked } from "react-icons/im";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
 import EventView from "../events/EventView";
 import { DateStamp } from "@prisma/client";
+import { EventListContainer } from "../general/Containers";
 
 const BarViewEvents = () => {
   const [time, setTime] = useState(getToday());
@@ -15,17 +16,15 @@ const BarViewEvents = () => {
   const [yearlyEvents, setYearlyEvents] = useState(false);
   const [hideRepeatedEvents, setHideRepeatedEvents] = useState(false);
 
-  const { data: eventIds, isLoading } = api.dateStamp.getEventsByTime.useQuery(
-    {
-      start: getStartDate({
-        date: time,
-        previous: previousEvents,
-        monthly: !yearlyEvents,
-      }).toISOString(),
-      end: getEndDate({ date: time, monthly: !yearlyEvents }).toISOString(),
-      unique: hideRepeatedEvents,
-    },
-  );
+  const { data: eventIds, isLoading } = api.dateStamp.getEventsByTime.useQuery({
+    start: getStartDate({
+      date: time,
+      previous: previousEvents,
+      monthly: !yearlyEvents,
+    }).toISOString(),
+    end: getEndDate({ date: time, monthly: !yearlyEvents }).toISOString(),
+    unique: hideRepeatedEvents,
+  });
 
   // Avoid different hours in server and component
   useEffect(() => {
@@ -170,7 +169,7 @@ const PageContent = ({
             <div className="w-full rounded-lg bg-themebg p-2 text-center text-2xl font-semibold text-white">
               <h4>{title}</h4>
             </div>
-            <div className="my-2 flex flex-row flex-wrap">
+            <EventListContainer className="my-2">
               {events[i]?.length ?? 0 > 0 ? (
                 events[i]?.map((stamp) => {
                   addJSX = true;
@@ -183,7 +182,7 @@ const PageContent = ({
               ) : (
                 <PageSubtitle text="No events in this month." />
               )}
-            </div>
+            </EventListContainer>
           </div>
         );
 
@@ -202,13 +201,13 @@ const PageContent = ({
       );
     } else {
       return (
-        <div className="flex flex-row flex-wrap justify-around md:justify-normal">
+        <EventListContainer>
           {timeStamps.map((stamp) => (
             <EventContainer key={stamp.id}>
               <EventView className="mx-2" dateStamp={stamp} />
             </EventContainer>
           ))}
-        </div>
+        </EventListContainer>
       );
     }
   }
