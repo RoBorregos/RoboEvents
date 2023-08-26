@@ -1,17 +1,17 @@
 import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
-import { type CreateEventStyle, CreateEventForm } from "./CreateEventForm";
-import { FC, useState } from "react";
+import { useState } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
 import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
-import { AiOutlineExpandAlt } from "react-icons/ai";
+import { AiOutlineExpandAlt, AiFillDelete } from "react-icons/ai";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
 import { GenerateTags } from "~/components/general/Generate";
 import type { DateStamp } from "@prisma/client";
 import { OptionsContainer, OptionsInnerContainer } from "../general/Containers";
+import { BottomCardRow } from "./BottomCardRow";
 
 const EventView = ({
   dateStamp,
@@ -59,12 +59,14 @@ const PageContent = ({
 }) => {
   const context = api.useContext();
   const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
-  const mutation = api.event.deleteEvent.useMutation({
+  const mutationEvent = api.event.deleteEvent.useMutation({
     onSuccess: (msg) => {
       alert(msg);
       void context.event.invalidate();
     },
   });
+
+  
 
   const [displayDetails, setDisplayDetails] = useState(false);
   if (isLoading) {
@@ -111,12 +113,12 @@ const PageContent = ({
                   );
 
                   if (confirmDeleteEvent) {
-                    mutation.mutate({ id: eventID });
+                    mutationEvent.mutate({ id: eventID });
                   }
                 }}
               >
                 <OptionsInnerContainer className="bg-red-600">
-                  <AiOutlineEdit className="m-1" size={40} />
+                  <AiFillDelete className="m-1" size={35} />
                   <h3 className="inline-block">
                     <b>Delete event</b>
                   </h3>
@@ -185,6 +187,7 @@ const PageContent = ({
               </div>
             </div>
           </div>
+          <BottomCardRow eventID={eventID}/>
         </div>
       </div>
     );

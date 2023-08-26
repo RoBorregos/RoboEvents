@@ -1,17 +1,14 @@
-import { Prisma } from "~/server/db";
+import type { Prisma } from "~/server/db";
 import { z } from "zod";
 
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-  adminProcedure,
-  communityProcedure,
   organizationProcedure,
 } from "~/server/api/trpc";
 
 import { TRPCError } from "@trpc/server";
-import { env } from "~/env.mjs";
 import {
   compareRole,
   getHighestRole,
@@ -20,7 +17,7 @@ import {
   roleOrLower,
 } from "~/utils/role";
 import { EventModel } from "~/zod/types";
-import { getDays, generateDates } from "~/utils/dates";
+import { generateDates } from "~/utils/dates";
 import { getImageLink } from "~/server/supabase";
 
 // Input for an event of a single day:
@@ -271,7 +268,7 @@ export const eventRouter = createTRPCRouter({
 
       return start;
     }),
-  deleteEvent: protectedProcedure
+  deleteEvent: organizationProcedure
     .input(z.object({ id: z.string().nullish() }))
     .mutation(async ({ input, ctx }) => {
       if (!input.id || !ctx.session?.user?.role || !ctx.session.user.id)

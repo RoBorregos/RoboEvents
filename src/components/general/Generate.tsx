@@ -1,7 +1,7 @@
 // Functions to generate tags in the different types of cards.
 
 import { twMerge } from "tailwind-merge";
-import { Tag } from "@prisma/client";
+import type { Tag } from "@prisma/client";
 import { api } from "~/utils/api";
 import Link from "next/link";
 
@@ -28,7 +28,10 @@ export const GenerateTags = ({
     const color = tagColors[tag.tagColor] ?? "bg-gray-600";
 
     tagsJsx.push(
-      <p className={twMerge("mb-2 mr-2 inline rounded-lg p-[3px]", color)}>
+      <p
+        key={tag.name}
+        className={twMerge("mb-2 mr-2 inline rounded-lg p-[3px]", color)}
+      >
         {tag.name}
       </p>
     );
@@ -36,7 +39,10 @@ export const GenerateTags = ({
 
   if (hasMaxTags && tagsJsx.length < tags.length) {
     tagsJsx.push(
-      <p className="mb-2 mr-2 inline rounded-lg bg-gray-600 p-[3px]">
+      <p
+        key="AdditionalElements"
+        className="mb-2 mr-2 inline rounded-lg bg-gray-600 p-[3px]"
+      >
         {tags.length - tagsJsx.length} more...
       </p>
     );

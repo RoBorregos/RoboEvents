@@ -1,4 +1,4 @@
-import { FC } from "react";
+import type { FC } from "react";
 import { twMerge } from "tailwind-merge";
 
 // Container to display lists of events.
@@ -15,6 +15,15 @@ export const EventListContainer: FC<React.JSX.IntrinsicElements["div"]> = ({
       )}
       {...props}
     >
+      {children}
+    </div>
+  );
+};
+
+// Container for an EventView
+export const EventContainer = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="mb-2 flex w-5/6 justify-around md:w-1/2 lg:w-1/3">
       {children}
     </div>
   );

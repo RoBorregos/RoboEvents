@@ -1,35 +1,29 @@
 import Layout from "~/components/layout/Layout";
 import { PageBody, PageSubtitle } from "~/components/general/PageElements";
-import BarViewEvents, {
-  EventContainer,
-} from "~/components/containers/BarViewEvents";
-import Select, { ActionMeta, MultiValue, SingleValue } from "react-select";
+import Select, { type ActionMeta } from "react-select";
 import makeAnimated from "react-select/animated";
 import { api } from "~/utils/api";
 import {
-  computeDate,
   getOwnerOptions,
   getTagOptions,
   getVisibilityOptions,
 } from "~/components/events/CreateEventForm";
 import {
-  ChangeEvent,
-  Dispatch,
-  FC,
-  HtmlHTMLAttributes,
-  SetStateAction,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
   useRef,
   useState,
+  useId,
 } from "react";
 import { useSession } from "next-auth/react";
 import EventView from "~/components/events/EventView";
-import { twMerge } from "tailwind-merge";
-import { EventListContainer } from "~/components/general/Containers";
+import {
+  EventListContainer,
+  EventContainer,
+} from "~/components/general/Containers";
 
 const animatedComponents = makeAnimated();
-
-type SelectType = { value: string; label: string }[] | undefined;
-type SelectTypeSingle = { value: string; label: string } | undefined;
 
 type IterableState = {
   owners: string[] | null;
@@ -168,12 +162,13 @@ export default function Find() {
           <div className="m-2 flex flex-col rounded-lg bg-themebg p-2">
             <h3 className="font-semibold text-white ">Owners</h3>
             <Select
+              instanceId={useId()}
               components={animatedComponents}
               isMulti
               options={ownerOptions}
               className="basic-multi-select mr-2 text-black"
               classNamePrefix="select"
-              defaultValue={[] as SelectType}
+              defaultValue={[] as Option[]}
               name="owners"
               onChange={(
                 option: readonly Option[],
@@ -190,12 +185,13 @@ export default function Find() {
           <div className="m-2 flex flex-col rounded-lg bg-themebg p-2">
             <h3 className="font-semibold text-white ">Confirmed</h3>
             <Select
+              instanceId={useId()}
               components={animatedComponents}
               isMulti
               options={ownerOptions}
               className="basic-multi-select mr-2 text-black"
               classNamePrefix="select"
-              defaultValue={[] as SelectType}
+              defaultValue={[] as Option[]}
               name="confirmed"
               onChange={(
                 option: readonly Option[],
@@ -212,12 +208,13 @@ export default function Find() {
           <div className="m-2 flex flex-col rounded-lg bg-themebg p-2">
             <h3 className="font-semibold text-white ">Tags</h3>
             <Select
+              instanceId={useId()}
               components={animatedComponents}
               isMulti
               options={tagOptions}
               className="basic-multi-select mr-2 text-black"
               classNamePrefix="select"
-              defaultValue={[] as SelectType}
+              defaultValue={[] as Option[]}
               name="tags"
               onChange={(
                 option: readonly Option[],
@@ -234,6 +231,7 @@ export default function Find() {
           <div className="m-2 flex flex-col rounded-lg bg-themebg p-2">
             <h3 className="font-semibold text-white ">Visibility</h3>
             <Select
+              instanceId={useId()}
               components={animatedComponents}
               options={visibilityOptions}
               isClearable

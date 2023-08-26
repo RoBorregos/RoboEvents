@@ -65,16 +65,11 @@ const PageContent = ({
   editInitial?: boolean;
 }) => {
   const [updateEvent, setUpdateEvent] = useState(editInitial ?? false);
-  const { data: canEdit } = api.event.canEdit.useQuery(
-    { id: eventID },
-  );
+  const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
 
-  const { data: startDate, status: dateStatus } =
-    api.event.getEventStart.useQuery(
-      {
-        id: eventID ?? "",
-      },
-    );
+  const { data: startDate } = api.event.getEventStart.useQuery({
+    id: eventID ?? "",
+  });
 
   if (isLoading) {
     return (

@@ -1,13 +1,12 @@
 import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
 import type { RouterOutputs } from "~/utils/api";
-import ValidImage from "../general/ValidImage";
 import React, { useState, useEffect } from "react";
 import { ImCheckboxUnchecked, ImCheckboxChecked } from "react-icons/im";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
 import EventView from "../events/EventView";
-import { DateStamp } from "@prisma/client";
-import { EventListContainer } from "../general/Containers";
+import type { DateStamp } from "@prisma/client";
+import { EventContainer, EventListContainer } from "../general/Containers";
 
 const BarViewEvents = () => {
   const [time, setTime] = useState(getToday());
@@ -211,14 +210,6 @@ const PageContent = ({
       );
     }
   }
-};
-
-export const EventContainer = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="mb-2 flex w-5/6 justify-around md:w-1/2 lg:w-1/3">
-      {children}
-    </div>
-  );
 };
 
 const eventsPerMonth = ({

@@ -5,7 +5,7 @@ import { PageBody, PageTitle } from "~/components/general/PageElements";
 
 import UserCard from "~/components/user/UserCard";
 import { useRouter } from "next/router";
-import { Session } from "next-auth";
+import type { Session } from "next-auth";
 
 export default function Home() {
   const { data: session } = useSession();
