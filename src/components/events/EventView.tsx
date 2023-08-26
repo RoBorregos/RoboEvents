@@ -12,6 +12,7 @@ import { GenerateTags } from "~/components/general/Generate";
 import type { DateStamp } from "@prisma/client";
 import { OptionsContainer, OptionsInnerContainer } from "../general/Containers";
 import { BottomCardRow } from "./BottomCardRow";
+import { CardDetailsRow } from "./CardDetailsRow";
 
 const EventView = ({
   dateStamp,
@@ -59,14 +60,6 @@ const PageContent = ({
 }) => {
   const context = api.useContext();
   const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
-  const mutationEvent = api.event.deleteEvent.useMutation({
-    onSuccess: (msg) => {
-      alert(msg);
-      void context.event.invalidate();
-    },
-  });
-
-  
 
   const [displayDetails, setDisplayDetails] = useState(false);
   if (isLoading) {
@@ -77,55 +70,11 @@ const PageContent = ({
     return (
       <div className="w-full">
         {displayDetails && (
-          <div className="flex flex-row flex-wrap items-center">
-            {canEdit && (
-              <OptionsContainer>
-                <Link
-                  href={{
-                    pathname: `/event/${eventID ?? "-1"}`,
-                    query: { edit: "true" },
-                  }}
-                >
-                  <OptionsInnerContainer className="bg-blue-600">
-                    <AiOutlineEdit className="m-1" size={40} />
-                    <h3>
-                      <b>Modify event</b>
-                    </h3>
-                  </OptionsInnerContainer>
-                </Link>
-              </OptionsContainer>
-            )}
-            <OptionsContainer>
-              <Link href={`/event/${eventID ?? "-1"}`}>
-                <OptionsInnerContainer className="bg-green-800">
-                  <AiOutlineExpandAlt className="m-1" size={35} />
-                  <h3 className="inline-block">
-                    <b>View Details</b>
-                  </h3>
-                </OptionsInnerContainer>
-              </Link>
-            </OptionsContainer>
-            {canEdit && (
-              <OptionsContainer
-                onClick={() => {
-                  const confirmDeleteEvent = confirm(
-                    "Are you sure you want to delete this event? This action can't be undone."
-                  );
-
-                  if (confirmDeleteEvent) {
-                    mutationEvent.mutate({ id: eventID });
-                  }
-                }}
-              >
-                <OptionsInnerContainer className="bg-red-600">
-                  <AiFillDelete className="m-1" size={35} />
-                  <h3 className="inline-block">
-                    <b>Delete event</b>
-                  </h3>
-                </OptionsInnerContainer>
-              </OptionsContainer>
-            )}
-          </div>
+          <CardDetailsRow
+            canEdit={canEdit}
+            eventID={eventID}
+            showVisit={true}
+          />
         )}
 
         <div className="mt-2 flex flex-col rounded-lg bg-themebg p-2">
@@ -187,7 +136,7 @@ const PageContent = ({
               </div>
             </div>
           </div>
-          <BottomCardRow eventID={eventID}/>
+          <BottomCardRow eventID={eventID} />
         </div>
       </div>
     );
