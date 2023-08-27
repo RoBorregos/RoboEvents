@@ -40,6 +40,13 @@ There are 4 roles in the app:
 - unauthenticated:
   - Can only see events with public visibility.
 
+## Development
+
+- Clone the repository.
+- npm install.
+- Create a .env file (see .env.example).
+- Create 2 buckets in the Supabase Storage used: "event-pictures" and "profile-pictures" with all the permissions (read, write, update, delete).
+
 ## Technologies used
 
 - [Next.js](https://nextjs.org)
@@ -56,7 +63,7 @@ There are 4 roles in the app:
 - [AzureAd:](https://azure.microsoft.com/en-us/services/active-directory/) OAuth provider
 - [GitHub:](https://github.com) OAuth provider
 
-## Other Libraries 
+## Other Libraries
 
 - [add-to-calendar-button-react:](https://add-to-calendar-button.com/) Add events to calendar.
 - [formik:](https://formik.org/) Form validation.

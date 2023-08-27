@@ -16,7 +16,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
     { name: "Create event", path: "/add-event", visibility: "organizationMember" },
     {
       name: "About",
-      path: "https://github.com/Oscar-gg/EventManager#readme",
+      path: "https://github.com/RoBorregos/RoboEvents#readme",
       target: "_blank" as const,
     },
   ];
