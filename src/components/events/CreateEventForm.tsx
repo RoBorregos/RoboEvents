@@ -13,6 +13,7 @@ import { PageSubtitle } from "../general/PageElements";
 import { roleOrLower } from "~/utils/role";
 import type { RouterOutputs } from "~/utils/api";
 import makeAnimated from "react-select/animated";
+import { getDefaultTime } from "~/utils/dates";
 
 export interface CreateEventStyle {
   label: string | undefined;
@@ -21,6 +22,8 @@ export interface CreateEventStyle {
   button: string | undefined;
   container: string | undefined;
 }
+
+// TODO: Implement events with multiple dates (rrule construction + validation + testing date generator)
 
 const animatedComponents = makeAnimated();
 
@@ -31,21 +34,29 @@ export const CreateEventForm = ({
   styles: CreateEventStyle;
   defaultValues?: RouterOutputs["event"]["getModifyEventInfo"];
 }) => {
+  const context = api.useContext();
   const { data: sessionData, status } = useSession();
   const { data: userID } = api.user.getAllUserId.useQuery();
   const { data: tags } = api.util.getTags.useQuery();
+
   const { data: startDate, status: dateStatus } =
     api.event.getEventStart.useQuery({
       id: defaultValues?.id ?? "",
     });
 
   const mutation = api.event.modifyOrCreateEvent.useMutation({
-    onSuccess: () => {
+    onSuccess: (succeeded) => {
+      if (!succeeded) {
+        alert("Event creation or update failed.");
+        return;
+      }
       alert(
         "Event " +
           (defaultValues?.id ? "updated" : "created") +
           " successfully!"
       );
+      void context.event.getEventStart.invalidate({ id: defaultValues?.id });
+      void context.dateStamp.getEventsByTime.invalidate();
     },
     onError: (error) => {
       alert(error);
@@ -90,7 +101,7 @@ export const CreateEventForm = ({
     : null;
   const defaultOwners = defaultValues?.owners.map((owner) => ({
     value: owner.id,
-    label: owner.username,
+    label: owner.username ?? owner.name ?? owner.id,
   }));
   const defaultTags = defaultValues?.tags.map((tag) => ({
     value: tag.name,
@@ -289,12 +300,12 @@ export const CreateEventForm = ({
                       <ImCheckboxChecked
                         className="align-middle"
                         size={32}
-                        onClick={() => setOneDate(!oneDate)}
+                        onClick={() => setOneDate(true)}
                       />
                     ) : (
                       <ImCheckboxUnchecked
                         size={32}
-                        onClick={() => setOneDate(!oneDate)}
+                        onClick={() => setOneDate(true)}
                       />
                     )}
                     <p className="ml-2 pt-1"> One day </p>
@@ -427,7 +438,11 @@ export const CreateEventForm = ({
                       const reader = new FileReader();
                       reader.readAsDataURL(file);
                       reader.onloadend = async () => {
-                        await setFieldValue("eventPicture", reader.result, true);
+                        await setFieldValue(
+                          "eventPicture",
+                          reader.result,
+                          true
+                        );
                         setPicUrl(reader.result as string);
                       };
                     }}
@@ -455,7 +470,7 @@ export const CreateEventForm = ({
   );
 };
 
-const getVisibilityOptions = (role: string | undefined | null) => {
+export const getVisibilityOptions = (role: string | undefined | null) => {
   if (!role) role = "unauthenticated";
 
   const visibleRoles = roleOrLower[role];
@@ -463,7 +478,7 @@ const getVisibilityOptions = (role: string | undefined | null) => {
   return visibleRoles?.map((role) => ({ value: role, label: role }));
 };
 
-const getOwnerOptions = (
+export const getOwnerOptions = (
   usersIDs: RouterOutputs["user"]["getAllUserId"] | undefined | null
 ) => {
   if (!usersIDs) return [{ value: "", label: "Loading..." }];
@@ -474,85 +489,25 @@ const getOwnerOptions = (
   }));
 };
 
-const getTagOptions = (
+export const getTagOptions = (
   tags: RouterOutputs["util"]["getTags"] | null | undefined
 ) => {
   return tags?.map((tag) => ({ value: tag.name, label: tag.name }));
 };
 
-const computeDate = (dateWithoutHour: string, time: string) => {
+export const computeDate = (dateWithoutHour: string, time: string) => {
+  const [year, month, day] = dateWithoutHour.split("-");
   const [hour, minute] = time.split(":");
 
-  const date = new Date(dateWithoutHour);
-
-  date.setHours(parseInt(hour ?? "0"), parseInt(minute ?? "0"), 0);
-  return date;
-};
-
-const getDefaultTime = ({
-  startDate,
-}: {
-  startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
-}) => {
-  if (!startDate) {
-    const today = new Date();
-    const maxDay = new Date(
-      today.getFullYear() + 2,
-      today.getMonth(),
-      today.getDate()
-    );
-    const minDay = new Date(
-      today.getFullYear() - 2,
-      today.getMonth(),
-      today.getDate()
-    );
-    const defaultDate = today.toISOString().split("T")[0] as string;
-    const defaultMax = maxDay.toISOString().split("T")[0];
-    const defaultMin = minDay.toISOString().split("T")[0];
-
-    const hours = String(today.getHours()).padStart(2, "0");
-    const minutes = String(today.getMinutes()).padStart(2, "0");
-    const defaultStartTime = `${hours}:${minutes}`;
-
-    return {
-      defaultDate,
-      defaultMax,
-      defaultMin,
-      defaultStartTime,
-      defaultEndTime: defaultStartTime,
-    };
-  } else {
-    const date = new Date(startDate.start);
-
-    const maxDay = new Date(
-      date.getFullYear() + 2,
-      date.getMonth(),
-      date.getDate()
-    );
-    const minDay = new Date(
-      date.getFullYear() - 2,
-      date.getMonth(),
-      date.getDate()
-    );
-
-    const defaultDate = date.toISOString().split("T")[0] as string;
-    const defaultMax = maxDay.toISOString().split("T")[0];
-    const defaultMin = minDay.toISOString().split("T")[0];
-
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const defaultStartTime = `${hours}:${minutes}`;
-
-    const dateEnd = new Date(startDate.end);
-    const hoursEnd = String(dateEnd.getHours()).padStart(2, "0");
-    const minutesEnd = String(dateEnd.getMinutes()).padStart(2, "0");
-    const defaultEndTime = `${hoursEnd}:${minutesEnd}`;
-    return {
-      defaultDate,
-      defaultMax,
-      defaultMin,
-      defaultStartTime,
-      defaultEndTime,
-    };
+  let date;
+  try {
+    if (year && month && day) {
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      date.setHours(parseInt(hour ?? "0"), parseInt(minute ?? "0"), 0);
+      return date;
+    } else throw new Error("Invalid date");
+  } catch (error) {
+    alert(error);
+    return new Date();
   }
 };

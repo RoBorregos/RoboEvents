@@ -1,4 +1,7 @@
 // Fill the days array with the days specified in the rrule.
+
+import type { RouterOutputs } from "./api";
+
 // days[0] = Sunday, days[1] = Monday, etc.
 export const getDays = (rrule: string) => {
   const days = [false, false, false, false, false, false, false];
@@ -59,18 +62,18 @@ export const generateDates = (
     const repEnd = getEndDate(rrule);
 
     while (iterateDay <= repEnd) {
-        if (days[iterateDay.getDay()]) {
-            const newStart = new Date(iterateDay);
-            const newEnd = new Date(iterateDay);
-            newEnd.setHours(endHour);
-            newEnd.setMinutes(endMinutes);
-            individualDates.push({
-            start: newStart,
-            end: newEnd,
-            });
-        }
-    
-        iterateDay.setDate(iterateDay.getDate() + 1);
+      if (days[iterateDay.getDay()]) {
+        const newStart = new Date(iterateDay);
+        const newEnd = new Date(iterateDay);
+        newEnd.setHours(endHour);
+        newEnd.setMinutes(endMinutes);
+        individualDates.push({
+          start: newStart,
+          end: newEnd,
+        });
+      }
+
+      iterateDay.setDate(iterateDay.getDate() + 1);
     }
 
     return individualDates;
@@ -83,15 +86,81 @@ export const generateDates = (
 };
 
 export const getEndDate = (rrule: string) => {
-    const pattern = /UNTIL=([^;]*);/;
-    const endDate = rrule.match(pattern);
+  const pattern = /UNTIL=([^;]*);/;
+  const endDate = rrule.match(pattern);
 
-    if (endDate && endDate[1]) {
-        const year = endDate[1].slice(0, 4);
-        const month = endDate[1].slice(4, 6);
-        const day = endDate[1].slice(6, 8);
-        return new Date(`${year}-${month}-${day}`);
-    }
+  if (endDate && endDate[1]) {
+    const year = endDate[1].slice(0, 4);
+    const month = endDate[1].slice(4, 6);
+    const day = endDate[1].slice(6, 8);
+    return new Date(`${year}-${month}-${day}`);
+  }
 
-    throw new Error("Invalid day in rrule.");
-}
+  throw new Error("Invalid day in rrule.");
+};
+
+export const getDefaultTime = ({
+  startDate,
+}: {
+  startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
+}) => {
+  let baseDate;
+  if (!startDate) {
+    baseDate = new Date();
+  } else {
+    baseDate = new Date(startDate.start);
+  }
+
+  const maxDay = new Date(
+    baseDate.getFullYear() + 2,
+    baseDate.getMonth(),
+    baseDate.getDate()
+  );
+  const minDay = new Date(
+    baseDate.getFullYear() - 2,
+    baseDate.getMonth(),
+    baseDate.getDate()
+  );
+
+  const defaultDate =
+    baseDate.getFullYear().toString() +
+    "-" +
+    (baseDate.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    baseDate.getDate().toString().padStart(2, "0");
+  const defaultMax =
+    maxDay.getFullYear().toString() +
+    "-" +
+    (maxDay.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    maxDay.getDate().toString().padStart(2, "0");
+  const defaultMin =
+    minDay.getFullYear().toString() +
+    "-" +
+    (minDay.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    minDay.getDate().toString().padStart(2, "0");
+
+  const hours = String(baseDate.getHours()).padStart(2, "0");
+  const minutes = String(baseDate.getMinutes()).padStart(2, "0");
+  const defaultStartTime = `${hours}:${minutes}`;
+
+  let defaultEndTime;
+
+  if (startDate) {
+    const dateEnd = new Date(startDate.end);
+    const hoursEnd = dateEnd.getHours().toString().padStart(2, "0");
+    const minutesEnd = dateEnd.getMinutes().toString().padStart(2, "0");
+    defaultEndTime = `${hoursEnd}:${minutesEnd}`;
+  } else {
+    defaultEndTime = defaultStartTime;
+  }
+
+  return {
+    defaultDate,
+    defaultMax,
+    defaultMin,
+    defaultStartTime,
+    defaultEndTime,
+  };
+};

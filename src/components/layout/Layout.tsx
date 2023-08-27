@@ -3,8 +3,8 @@ import NavBar from "./NavBar";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({
   children,
-  title = "Event Manager",
-  description = "Event Manager",
+  title = "RoboEvents",
+  description = "RoboEvents",
 }: {
   children: React.ReactNode;
   title?: string;
@@ -12,8 +12,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const routes = [
     { name: "Home", path: "/" },
-    { name: "Add event", path: "/add-event" },
-    { name: "About", path: "/about" },
+    { name: "Find", path: "/find" },
+    { name: "Create event", path: "/add-event", visibility: "organizationMember" },
+    {
+      name: "About",
+      path: "https://github.com/Oscar-gg/EventManager#readme",
+      target: "_blank" as const,
+    },
   ];
 
   return (
@@ -23,12 +28,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
         <meta name="description" content={description} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <NavBar
-        routes={routes}
-      />
-      <main>
-        {children}
-      </main>
+      <NavBar routes={routes} />
+      <main>{children}</main>
     </>
   );
 };

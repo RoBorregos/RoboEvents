@@ -8,6 +8,7 @@ generator client {
 
 datasource db {
     provider = "cockroachdb"
+    // provider = "sqlite"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -56,7 +57,7 @@ model User {
     email           String?   @unique
     username        String?   @unique
     emailVerified   DateTime?
-    image           String    @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
+    image           String?   @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
     organizations   String?
     role            String?
     description     String?
@@ -88,7 +89,7 @@ model DateStamp {
     start   DateTime
     end     DateTime
     eventId String
-    Event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+    event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model Admin {

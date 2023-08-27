@@ -26,7 +26,7 @@ export const UpdateUserForm = ({
 }: {
   styles: UpdateUserStyle;
   defaultValues: Values;
-  changeImg?: React.Dispatch<React.SetStateAction<string | undefined>>;
+  changeImg?: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const context = api.useContext();
 

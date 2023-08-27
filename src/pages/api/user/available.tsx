@@ -13,19 +13,20 @@ type ResponseData = {
   };
 };
 
-export default async (
+const caller = appRouter.user.createCaller({ session: null, prisma });
+
+const isAvailable = async (
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) => {
   const username = req.query.username as string;
-  console.log("username", username);
+  const userId = "-1";
   if (!username) {
     res.status(400).json({ error: { message: "No username provided" } });
   }
-  const caller = appRouter.user.createCaller({ session: null, prisma });
 
   try {
-    const postResult = await caller.isAvailable(username);
+    const postResult = await caller.isAvailable({ username, userId });
 
     res.status(200).json({ data: { available: postResult } });
   } catch (cause) {
@@ -39,3 +40,5 @@ export default async (
     });
   }
 };
+
+export default isAvailable;

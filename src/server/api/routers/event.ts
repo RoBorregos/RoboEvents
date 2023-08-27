@@ -1,20 +1,23 @@
-import { Prisma } from "~/server/db";
+import type { Prisma } from "~/server/db";
 import { z } from "zod";
 
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-  adminProcedure,
-  communityProcedure,
   organizationProcedure,
 } from "~/server/api/trpc";
 
 import { TRPCError } from "@trpc/server";
-import { env } from "~/env.mjs";
-import { compareRole, getHighestRole, onlyUpperRole } from "~/utils/role";
+import {
+  compareRole,
+  getHighestRole,
+  getRoleOrLower,
+  onlyUpperRole,
+  roleOrLower,
+} from "~/utils/role";
 import { EventModel } from "~/zod/types";
-import { getDays, generateDates } from "~/utils/dates";
+import { generateDates } from "~/utils/dates";
 import { getImageLink } from "~/server/supabase";
 
 // Input for an event of a single day:
@@ -24,10 +27,51 @@ import { getImageLink } from "~/server/supabase";
 // start time (js date) & end time (js date) & RRule.
 
 export const eventRouter = createTRPCRouter({
+  getConciseEventInfo: publicProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.id) return null;
+
+      const event = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          image: true,
+          location: true,
+          visibility: true,
+          tags: true,
+          owners: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (!event) return null;
+
+      // Only check if user can see the event. Modification permission is checked in the mutation
+      if (
+        canSeeEvent({
+          visibility: event.visibility,
+          ownersId: event.owners.map((owner) => owner.id),
+          userId: ctx.session?.user?.id,
+          userRole: ctx.session?.user?.role,
+        })
+      )
+        return event;
+
+      return null;
+    }),
+
   getModifyEventInfo: publicProcedure
     .input(z.object({ id: z.string().nullish() }))
     .query(async ({ input, ctx }) => {
-      if (!input.id || !ctx.session?.user?.role) return null;
+      if (!input.id) return null;
 
       const event = await ctx.prisma.event.findUnique({
         where: {
@@ -50,8 +94,10 @@ export const eventRouter = createTRPCRouter({
 
       // Only check if user can see the event. Modification permission is checked in the mutation
       if (
-        compareRole({
-          requiredRole: event.visibility,
+        canSeeEvent({
+          visibility: event.visibility,
+          ownersId: event.owners.map((owner) => owner.id),
+          userId: ctx.session?.user?.id,
           userRole: ctx.session?.user?.role,
         })
       )
@@ -69,28 +115,190 @@ export const eventRouter = createTRPCRouter({
         orderBy: {
           start: "asc",
         },
-        select: {
-          start: true,
-          end: true,
-        },
       });
       return startDate;
     }),
 
+  getVisibleEventIds: publicProcedure.query(async ({ ctx }) => {
+    const visibleEvents =
+      roleOrLower[ctx.session?.user?.role ?? "unauthenticated"];
+    const events = await ctx.prisma.event.findMany({
+      where: {
+        OR: [
+          {
+            visibility: {
+              in: visibleEvents,
+            },
+          },
+          {
+            owners: {
+              some: {
+                id: ctx.session?.user?.id,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return events;
+  }),
+  getEventConfirmedUsers: publicProcedure
+    .input(z.object({ eventId: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.eventId) return false;
+
+      const confirmedUsers = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.eventId,
+        },
+        select: {
+          confirmed: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      // Share the least amount of data possible with the front-end.
+      const confirmedUsersInfo = confirmedUsers?.confirmed.map((user) => {
+        if (user.username) {
+          return { id: user.id, info: user.username };
+        } else if (user.name) {
+          return { id: user.id, info: user.name };
+        } else {
+          return { id: user.id, info: user.id };
+        }
+      });
+
+      if (!confirmedUsersInfo || confirmedUsersInfo.length == 0) return false;
+
+      return confirmedUsersInfo;
+    }),
+
+  getEventOwners: publicProcedure
+    .input(z.object({ eventId: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.eventId) return false;
+
+      const eventOwners = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.eventId,
+        },
+        select: {
+          owners: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!eventOwners) return false;
+
+      return eventOwners.owners.map((owner) => {
+        if (owner.username) {
+          return { id: owner.id, info: owner.username };
+        } else if (owner.name) {
+          return { id: owner.id, info: owner.name };
+        } else {
+          return { id: owner.id, info: owner.id };
+        }
+      });
+    }),
+
+  getEventById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const visibleEvents = getRoleOrLower(ctx.session?.user?.role);
+      const event = await ctx.prisma.event.findFirst({
+        where: {
+          id: input.id,
+          visibility: {
+            in: visibleEvents,
+          },
+        },
+      });
+
+      return event;
+    }),
+
+  canEdit: publicProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.id || !ctx.session?.user?.role || !ctx.session.user.id)
+        return false;
+
+      const canEditEvent = await canEditOrCreateEvent({
+        eventId: input.id,
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        userRole: ctx.session.user.role,
+      });
+      return canEditEvent;
+    }),
+
+  getStartAndEnd: publicProcedure
+    .input(
+      z.object({ eventId: z.string().nullish(), date: z.string().nullish() })
+    )
+    .query(async ({ ctx, input }) => {
+      if (!input.eventId) return false;
+      const start = await ctx.prisma.dateStamp.findFirst({
+        where: {
+          eventId: input.eventId,
+          start: {
+            gte: new Date(input.date ?? 0),
+          },
+        },
+        orderBy: {
+          start: "asc",
+        },
+      });
+
+      return start;
+    }),
+  deleteEvent: organizationProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .mutation(async ({ input, ctx }) => {
+      if (!input.id || !ctx.session?.user?.role || !ctx.session.user.id)
+        return "No id or user role.";
+
+      const canEditEvent = await canEditOrCreateEvent({
+        eventId: input.id,
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        userRole: ctx.session.user.role,
+      });
+
+      if (!canEditEvent) return "You are not authorized to delete this event.";
+
+      await ctx.prisma.event.delete({
+        where: {
+          id: input.id,
+        },
+      });
+
+      return "Event deleted.";
+    }),
   modifyOrCreateEvent: protectedProcedure
     .input(EventModel)
     .mutation(async ({ input, ctx }) => {
-      try {
-        await validateModifyEventPermissions({
-          eventId: input.id,
-          prisma: ctx.prisma,
-          userId: ctx.session.user.id,
-          userRole: ctx.session?.user?.role ?? "",
-        });
-      } catch (error) {
-        console.log("Error: ", error);
-        return false;
-      }
+      const canContinue = await canEditOrCreateEvent({
+        eventId: input.id,
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        userRole: ctx.session?.user?.role ?? "",
+        logError: true,
+      });
+      if (!canContinue) return false;
 
       if (!input.id)
         input.id = `${ctx.session.user.id}-${Date.now().toString()}`;
@@ -115,7 +323,7 @@ export const eventRouter = createTRPCRouter({
       });
 
       if (!isCreatorPresent) {
-        newOwners.push({ id: ctx.session?.user?.id });
+        newOwners.push({ id: ctx.session.user.id });
       }
 
       const newTags = input.tags.map((tag) => {
@@ -188,14 +396,43 @@ export const eventRouter = createTRPCRouter({
           });
         });
       } catch (err) {
-        console.log("Error: ");
-        console.log(err);
+        console.log("Error: ", err);
         return false;
       }
 
       return true;
     }),
 });
+
+const canEditOrCreateEvent = async ({
+  eventId,
+  prisma,
+  userId,
+  userRole,
+  logError,
+}: {
+  eventId: string | undefined | null;
+  prisma: Prisma;
+  userId: string;
+  userRole: string;
+  logError?: boolean;
+}) => {
+  try {
+    await validateModifyEventPermissions({
+      eventId: eventId,
+      prisma: prisma,
+      userId: userId,
+      userRole: userRole,
+    });
+  } catch (error) {
+    if (logError) {
+      console.log("Error: ");
+      console.log(error);
+    }
+    return false;
+  }
+  return true;
+};
 
 const validateModifyEventPermissions = async ({
   eventId,
@@ -240,9 +477,8 @@ const validateModifyEventPermissions = async ({
           role: true,
         },
       });
-      const highestRole = getHighestRole(users);
-
-      if (!onlyUpperRole(highestRole, userRole)) {
+      const highestRole = getHighestRole(users, "organizationMember");
+      if (!onlyUpperRole({ upperThan: highestRole, userRole: userRole })) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: `You are not authorized to modify this event.`,
@@ -259,4 +495,28 @@ const validateModifyEventPermissions = async ({
       });
     }
   }
+};
+
+const canSeeEvent = ({
+  visibility,
+  ownersId,
+  userId,
+  userRole,
+}: {
+  visibility: string;
+  ownersId: string[];
+  userId: string | undefined | null;
+  userRole: string | undefined | null;
+}) => {
+  if (
+    compareRole({
+      requiredRole: visibility,
+      userRole: userRole ?? "unauthenticated",
+    })
+  )
+    return true;
+
+  if (ownersId.includes(userId ?? "-1")) return true;
+
+  return false;
 };
