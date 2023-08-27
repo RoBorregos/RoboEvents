@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { getRoleOrLower } from "~/utils/role";
 
 export const filterRouter = createTRPCRouter({
@@ -32,7 +29,8 @@ export const filterRouter = createTRPCRouter({
             {
               owners: {
                 some: {
-                  id: ctx.session?.user?.id,
+                  // If id is undefined, then it will return no additional events for this clause (undefined matches all)
+                  id: ctx.session?.user?.id ?? "-1",
                 },
               },
             },
@@ -48,7 +46,7 @@ export const filterRouter = createTRPCRouter({
               end: {
                 lte: input.endDate
                   ? new Date(input.endDate)
-                  : new Date(8640000000000000),
+                  : new Date(8640000000000),
               },
             },
           },
