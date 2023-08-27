@@ -23,6 +23,8 @@ export interface CreateEventStyle {
   container: string | undefined;
 }
 
+// TODO: Implement events with multiple dates (rrule construction + validation + testing date generator)
+
 const animatedComponents = makeAnimated();
 
 export const CreateEventForm = ({
@@ -298,12 +300,12 @@ export const CreateEventForm = ({
                       <ImCheckboxChecked
                         className="align-middle"
                         size={32}
-                        onClick={() => setOneDate(!oneDate)}
+                        onClick={() => setOneDate(true)}
                       />
                     ) : (
                       <ImCheckboxUnchecked
                         size={32}
-                        onClick={() => setOneDate(!oneDate)}
+                        onClick={() => setOneDate(true)}
                       />
                     )}
                     <p className="ml-2 pt-1"> One day </p>
@@ -509,5 +511,3 @@ export const computeDate = (dateWithoutHour: string, time: string) => {
     return new Date();
   }
 };
-
-

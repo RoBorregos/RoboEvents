@@ -39,7 +39,7 @@ export const resizeImg = (
   ) {
     const img = new Image();
     img.src = imgSrc;
-    console.log(imgSrc);
+      // console.log(imgSrc);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return env.NEXT_PUBLIC_DEFAULT_IMAGE;
@@ -47,16 +47,16 @@ export const resizeImg = (
     const width = maxW;
     const height = maxW;
 
-    console.log("w, h:", width, height);
-    console.log("maxW, maxH:", maxW, maxH);
-    console.log("img.width, img.height:", img.width, img.height);
+    // console.log("w, h:", width, height);
+    // console.log("maxW, maxH:", maxW, maxH);
+    // console.log("img.width, img.height:", img.width, img.height);
 
     canvas.width = width;
     canvas.height = height;
 
     ctx.drawImage(img, 0, 0, width, height);
 
-    console.log(canvas);
+    // console.log(canvas);
     const dataurl = canvas.toDataURL("image/jpg");
 
     return dataurl;

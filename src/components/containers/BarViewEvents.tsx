@@ -43,8 +43,11 @@ const BarViewEvents = () => {
     setTime(newTime);
   };
 
+  //"es-mx"
+  // en-us
+  // void 0 -> Use browser default
   const title = capitalizeString(
-    time.toLocaleDateString("es-mx", {
+    time.toLocaleDateString(void 0, {
       year: "numeric",
       month: yearlyEvents ? undefined : "long",
     })

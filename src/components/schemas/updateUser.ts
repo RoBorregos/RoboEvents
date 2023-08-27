@@ -29,13 +29,12 @@ export const updateUserSchema = Yup.object().shape({
       return validUrl;
     }
   ),
-  profileDescription: Yup.string().nullable().max(100, "Max 100 characters.")
+  profileDescription: Yup.string().nullable().max(100, "Max 100 characters."),
 });
-
-
 
 async function isUserAvailable(username: string) {
   const url = `${env.NEXT_PUBLIC_PROJECT_URL}/api/user/available?username=${username}`;
+
   try {
     const res = await fetch(url, { method: "GET" });
     const data = await res.json();

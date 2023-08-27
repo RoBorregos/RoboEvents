@@ -1,10 +1,7 @@
 import { useSession } from "next-auth/react";
 import Layout from "~/components/layout/Layout";
 
-import {
-  PageBody,
-  PageTitle,
-} from "~/components/general/PageElements";
+import { PageBody, PageTitle } from "~/components/general/PageElements";
 import { compareRole } from "~/utils/role";
 
 import EventModify from "~/components/events/EventModify";
@@ -24,14 +21,14 @@ export default function AddEvent() {
           isAllowed ? (
             <EventModify eventId="" />
           ) : (
-            <div>
+            <div className="text-2xl">
               <p>No Access.</p>
               <p>You must be an organization member to create an event.</p>
               <p>Your role: {session?.user.role}</p>
             </div>
           )
         ) : (
-          <div>
+          <div className="text-2xl">
             <p>Not signed in</p>
             <p>Sign in to create a new event.</p>
           </div>

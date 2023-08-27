@@ -6,6 +6,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import { AddToCalendarButton } from "add-to-calendar-button-react";
 import { getDefaultTime } from "~/utils/dates";
 import type { DateStamp } from "@prisma/client";
+import { compareRole } from "~/utils/role";
 
 export const BottomCardRow = ({
   event,
@@ -18,7 +19,6 @@ export const BottomCardRow = ({
     | null;
   date: DateStamp | undefined | null;
 }) => {
-  console.log(date);
   const { data: sessionData } = useSession();
   const context = api.useContext();
   const { isLoading: loadingConfirmed } = api.user.isConfirmed.useQuery(
@@ -49,10 +49,15 @@ export const BottomCardRow = ({
     startDate: date,
   });
 
+  const hasConfirmRole = compareRole({
+    requiredRole: "communityMember",
+    userRole: sessionData?.user?.role,
+  });
+
   return (
-    <div className="flex flex-row flex-wrap justify-center sm:m-0 m-2">
-      {sessionData && !loadingConfirmed && (
-        <div className="flex flex-row flex-wrap items-center justify-center mb-2 sm:mr-auto">
+    <div className="m-2 flex flex-row flex-wrap justify-center sm:m-0">
+      {sessionData && !loadingConfirmed && hasConfirmRole && (
+        <div className="mb-2 flex flex-row flex-wrap items-center justify-center sm:mr-auto">
           {isConfirmed ? (
             <ImCheckboxChecked
               size={25}
@@ -78,11 +83,7 @@ export const BottomCardRow = ({
           )}
 
           <div className="mx-2 font-bold">
-            {isConfirmed ? (
-              <p>Confirmed</p>
-            ) : (
-              <p>Confirm Assistance</p>
-            )}
+            {isConfirmed ? <p>Confirmed</p> : <p>Confirm Assistance</p>}
           </div>
         </div>
       )}

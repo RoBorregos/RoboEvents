@@ -12,7 +12,7 @@ import {
 } from "~/server/supabase";
 import { env } from "~/env.mjs";
 import { z } from "zod";
-import { roleOrLower } from "~/utils/role";
+import { compareRole, roleOrLower } from "~/utils/role";
 
 export const userRouter = createTRPCRouter({
   // Return user info, considering if the user is the owner of the profile or not
@@ -97,14 +97,14 @@ export const userRouter = createTRPCRouter({
       return null;
     }),
   isAvailable: publicProcedure
-    .input(z.string())
+    .input(z.object({ username: z.string(), userId: z.string() }))
     .query(async ({ input, ctx }) => {
       const user = await ctx.prisma.user.findUnique({
         where: {
-          username: input,
+          username: input.username,
         },
       });
-      if (!user || user.id === ctx.session?.user.id) return true;
+      if (!user || input.userId === ctx.session?.user.id) return true;
       return false;
     }),
 
@@ -142,6 +142,15 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       if (!input.eventId || !input.userId) return false;
+
+      // Only allow community members to confirm event assistance.
+      if (
+        !compareRole({
+          requiredRole: "communityMember",
+          userRole: ctx.session?.user?.role ?? "unauthenticated",
+        })
+      )
+        return false;
 
       if (input.confirmed) {
         await ctx.prisma.event.update({

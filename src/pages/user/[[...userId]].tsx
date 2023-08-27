@@ -10,7 +10,7 @@ import type { Session } from "next-auth";
 export default function Home() {
   const { data: session } = useSession();
   const router = useRouter();
-  console.log(router.query.userId?.length);
+
   const userId = router.query?.userId
     ? router.query?.userId[0] ?? ""
     : session?.user.id ?? "";

@@ -396,8 +396,7 @@ export const eventRouter = createTRPCRouter({
           });
         });
       } catch (err) {
-        console.log("Error: ");
-        console.log(err);
+        console.log("Error: ", err);
         return false;
       }
 

@@ -3,8 +3,8 @@ import NavBar from "./NavBar";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({
   children,
-  title = "Event Manager",
-  description = "Event Manager",
+  title = "RoboEvents",
+  description = "RoboEvents",
 }: {
   children: React.ReactNode;
   title?: string;
@@ -13,7 +13,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
   const routes = [
     { name: "Home", path: "/" },
     { name: "Find", path: "/find" },
-    { name: "Add event", path: "/add-event", visibility: "organizationMember" },
+    { name: "Create event", path: "/add-event", visibility: "organizationMember" },
     {
       name: "About",
       path: "https://github.com/Oscar-gg/EventManager#readme",

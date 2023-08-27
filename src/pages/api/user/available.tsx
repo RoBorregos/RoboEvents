@@ -20,13 +20,13 @@ const isAvailable = async (
   res: NextApiResponse<ResponseData>
 ) => {
   const username = req.query.username as string;
-  console.log("username", username);
+  const userId = "-1";
   if (!username) {
     res.status(400).json({ error: { message: "No username provided" } });
   }
 
   try {
-    const postResult = await caller.isAvailable(username);
+    const postResult = await caller.isAvailable({ username, userId });
 
     res.status(200).json({ data: { available: postResult } });
   } catch (cause) {

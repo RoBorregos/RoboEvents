@@ -1,5 +1,9 @@
 import Layout from "~/components/layout/Layout";
-import { PageBody, PageSubtitle } from "~/components/general/PageElements";
+import {
+  PageBody,
+  PageSubtitle,
+  PageTitle,
+} from "~/components/general/PageElements";
 import Select, { type ActionMeta } from "react-select";
 import makeAnimated from "react-select/animated";
 import { api } from "~/utils/api";
@@ -148,16 +152,15 @@ export default function Find() {
   const firstRender = useRef(true);
 
   if (firstRender.current) {
-    refetch();
+    refetch().catch((e) => console.log(e));
     firstRender.current = false;
   }
 
   return (
     <Layout>
       <PageBody>
-        <h1 className="text-5xl font-extrabold tracking-tight text-black sm:text-[5rem]">
-          Find Events
-        </h1>
+        <PageTitle text="Find Events" />
+
         <div className="flex flex-row flex-wrap rounded-lg bg-highlight p-2">
           <div className="m-2 flex flex-col rounded-lg bg-themebg p-2">
             <h3 className="font-semibold text-white ">Owners</h3>
@@ -287,8 +290,8 @@ export default function Find() {
           <div className="m-2 mb-auto mt-auto flex h-fit flex-col items-center justify-center rounded-lg bg-themebg p-2">
             <button
               className="rounded-xl bg-green-500 p-1 text-themebg"
-              onClick={async () => {
-                await refetch();
+              onClick={() => {
+                refetch().catch((e) => console.log(e));
               }}
             >
               Search
