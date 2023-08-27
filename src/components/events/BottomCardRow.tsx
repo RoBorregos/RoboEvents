@@ -1,18 +1,29 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
-import { api } from "~/utils/api";
+import { RouterOutputs, api } from "~/utils/api";
+
+import { AddToCalendarButton } from "add-to-calendar-button-react";
+import { getDefaultTime } from "~/utils/dates";
+import { DateStamp } from "@prisma/client";
 
 export const BottomCardRow = ({
-  eventID,
+  event,
+  date,
 }: {
-  eventID: string | undefined | null;
+  event:
+    | RouterOutputs["event"]["getModifyEventInfo"]
+    | RouterOutputs["event"]["getConciseEventInfo"]
+    | undefined
+    | null;
+  date: DateStamp | undefined | null;
 }) => {
+  console.log(date);
   const { data: sessionData } = useSession();
   const context = api.useContext();
   const { isLoading: loadingConfirmed } = api.user.isConfirmed.useQuery(
     {
-      eventId: eventID,
+      eventId: event?.id,
       userId: sessionData?.user?.id,
     },
     {
@@ -34,16 +45,20 @@ export const BottomCardRow = ({
     },
   });
 
+  const { defaultDate, defaultStartTime, defaultEndTime } = getDefaultTime({
+    startDate: date,
+  });
+
   return (
-    <div className="flex flex-row flex-wrap">
+    <div className="flex flex-row flex-wrap justify-center sm:m-0 m-2">
       {sessionData && !loadingConfirmed && (
-        <div className="flex flex-row flex-wrap items-center">
+        <div className="flex flex-row flex-wrap items-center justify-center mb-2 sm:mr-auto">
           {isConfirmed ? (
             <ImCheckboxChecked
-              size={32}
+              size={25}
               onClick={() => {
                 mutationUser.mutate({
-                  eventId: eventID,
+                  eventId: event?.id,
                   userId: sessionData?.user?.id,
                   confirmed: false,
                 });
@@ -51,10 +66,10 @@ export const BottomCardRow = ({
             />
           ) : (
             <ImCheckboxUnchecked
-              size={32}
+              size={25}
               onClick={() => {
                 mutationUser.mutate({
-                  eventId: eventID,
+                  eventId: event?.id,
                   userId: sessionData?.user?.id,
                   confirmed: true,
                 });
@@ -64,14 +79,25 @@ export const BottomCardRow = ({
 
           <div className="mx-2 font-bold">
             {isConfirmed ? (
-              <p>Assistance Confirmed</p>
+              <p>Confirmed</p>
             ) : (
               <p>Confirm Assistance</p>
             )}
           </div>
         </div>
       )}
-      <div className="flex flex-row flex-wrap">Add to calendar</div>
+
+      <AddToCalendarButton
+        name={event?.name ?? "Unnamed event"}
+        description={event?.description}
+        options={["Outlook.com", "Apple", "Google", "Yahoo", "iCal"]}
+        location={event?.location ?? "No location."}
+        startDate={defaultDate}
+        startTime={defaultStartTime}
+        endTime={defaultEndTime}
+        timeZone={"currentBrowser"}
+        inline={true}
+      ></AddToCalendarButton>
     </div>
   );
 };

@@ -37,6 +37,7 @@ export const eventRouter = createTRPCRouter({
           id: input.id,
         },
         select: {
+          id: true,
           name: true,
           description: true,
           image: true,
@@ -113,10 +114,6 @@ export const eventRouter = createTRPCRouter({
         },
         orderBy: {
           start: "asc",
-        },
-        select: {
-          start: true,
-          end: true,
         },
       });
       return startDate;

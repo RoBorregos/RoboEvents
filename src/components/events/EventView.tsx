@@ -32,13 +32,7 @@ const EventView = ({
         className
       )}
     >
-      <PageContent
-        eventID={dateStamp.eventId}
-        event={event}
-        isLoading={isLoading}
-        start={dateStamp.start}
-        end={dateStamp.end}
-      />
+      <PageContent dateStamp={dateStamp} event={event} isLoading={isLoading} />
     </div>
   );
 };
@@ -46,20 +40,16 @@ const EventView = ({
 export default EventView;
 
 const PageContent = ({
-  eventID,
+  dateStamp,
   event,
   isLoading,
-  start,
-  end,
 }: {
-  eventID: string | null | undefined;
+  dateStamp: DateStamp;
   event: RouterOutputs["event"]["getConciseEventInfo"] | undefined | null;
   isLoading: boolean;
-  start: Date;
-  end: Date;
 }) => {
   const context = api.useContext();
-  const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
+  const { data: canEdit } = api.event.canEdit.useQuery({ id: dateStamp.eventId });
 
   const [displayDetails, setDisplayDetails] = useState(false);
   if (isLoading) {
@@ -72,7 +62,7 @@ const PageContent = ({
         {displayDetails && (
           <CardDetailsRow
             canEdit={canEdit}
-            eventID={eventID}
+            eventID={dateStamp.eventId}
             showVisit={true}
           />
         )}
@@ -100,10 +90,10 @@ const PageContent = ({
 
               <div className="mt-2 flex flex-col text-left sm:ml-auto sm:mt-0 sm:text-right">
                 <p>
-                  <b>{start.toLocaleDateString()}</b>
+                  <b>{dateStamp.start.toLocaleDateString()}</b>
                 </p>
                 <p>
-                  <b>{getTimeString({ start, end })}</b>
+                  <b>{getTimeString({ start: dateStamp.start, end: dateStamp.end })}</b>
                 </p>
               </div>
             </div>
@@ -136,7 +126,7 @@ const PageContent = ({
               </div>
             </div>
           </div>
-          <BottomCardRow eventID={eventID} />
+          <BottomCardRow event={event} date={dateStamp} />
         </div>
       </div>
     );

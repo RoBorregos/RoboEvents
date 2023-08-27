@@ -13,6 +13,7 @@ import { PageSubtitle } from "../general/PageElements";
 import { roleOrLower } from "~/utils/role";
 import type { RouterOutputs } from "~/utils/api";
 import makeAnimated from "react-select/animated";
+import { getDefaultTime } from "~/utils/dates";
 
 export interface CreateEventStyle {
   label: string | undefined;
@@ -509,68 +510,4 @@ export const computeDate = (dateWithoutHour: string, time: string) => {
   }
 };
 
-const getDefaultTime = ({
-  startDate,
-}: {
-  startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
-}) => {
-  let baseDate;
-  if (!startDate) {
-    baseDate = new Date();
-  } else {
-    baseDate = new Date(startDate.start);
-  }
 
-  const maxDay = new Date(
-    baseDate.getFullYear() + 2,
-    baseDate.getMonth(),
-    baseDate.getDate()
-  );
-  const minDay = new Date(
-    baseDate.getFullYear() - 2,
-    baseDate.getMonth(),
-    baseDate.getDate()
-  );
-
-  const defaultDate =
-    baseDate.getFullYear().toString() +
-    "-" +
-    (baseDate.getMonth() + 1).toString().padStart(2, "0") +
-    "-" +
-    baseDate.getDate().toString().padStart(2, "0");
-  const defaultMax =
-    maxDay.getFullYear().toString() +
-    "-" +
-    (maxDay.getMonth() + 1).toString().padStart(2, "0") +
-    "-" +
-    maxDay.getDate().toString().padStart(2, "0");
-  const defaultMin =
-    minDay.getFullYear().toString() +
-    "-" +
-    (minDay.getMonth() + 1).toString().padStart(2, "0") +
-    "-" +
-    minDay.getDate().toString().padStart(2, "0");
-
-  const hours = String(baseDate.getHours()).padStart(2, "0");
-  const minutes = String(baseDate.getMinutes()).padStart(2, "0");
-  const defaultStartTime = `${hours}:${minutes}`;
-
-  let defaultEndTime;
-
-  if (startDate) {
-    const dateEnd = new Date(startDate.end);
-    const hoursEnd = dateEnd.getHours().toString().padStart(2, "0");
-    const minutesEnd = dateEnd.getMinutes().toString().padStart(2, "0");
-    defaultEndTime = `${hoursEnd}:${minutesEnd}`;
-  } else {
-    defaultEndTime = defaultStartTime;
-  }
-
-  return {
-    defaultDate,
-    defaultMax,
-    defaultMin,
-    defaultStartTime,
-    defaultEndTime,
-  };
-};

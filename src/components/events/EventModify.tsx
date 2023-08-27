@@ -11,6 +11,7 @@ import { GenerateOwners } from "~/components/general/Generate";
 import { getTimeString } from "./EventView";
 import { GenerateConfirmed } from "~/components/general/Generate";
 import { CardDetailsRow } from "./CardDetailsRow";
+import { BottomCardRow } from "./BottomCardRow";
 
 const formStyle: CreateEventStyle = {
   label: "text-white mr-2 align-middle flex items-center h-10",
@@ -121,32 +122,36 @@ const PageContent = ({
               </p>
               <p>
                 <b>Tags:</b>
-                <div className="mt-1 flex flex-row flex-wrap">
-                  <GenerateTags tags={event.tags} />
-                </div>
               </p>
+              <div className="mt-1 flex flex-row flex-wrap">
+                <GenerateTags tags={event.tags} />
+              </div>
+
               <p>
                 <b>Owners:</b>
-                <div className="mt-1 flex flex-row flex-wrap">
-                  <GenerateOwners eventID={event.id} />
-                </div>
               </p>
+              <div className="mt-1 flex flex-row flex-wrap">
+                <GenerateOwners eventID={event.id} />
+              </div>
+
               <p className="mt-2">
-                <b>Visibility:</b>{" "}
-                <div className="mb-2 mt-1 flex flex-row flex-wrap">
-                  <span className="rounded-lg bg-blue-600 p-1">
-                    {event.visibility}
-                  </span>
-                </div>
+                <b>Visibility:</b>
               </p>
+              <div className="mb-2 mt-1 flex flex-row flex-wrap">
+                <span className="rounded-lg bg-blue-600 p-1">
+                  {event.visibility}
+                </span>
+              </div>
+
               <p>
                 <b>Confirmed:</b>
-                <div className="mt-1 flex flex-row flex-wrap">
-                  <GenerateConfirmed eventID={event.id} />
-                </div>
               </p>
+              <div className="mt-1 flex flex-row flex-wrap">
+                <GenerateConfirmed eventID={event.id} />
+              </div>
             </div>
           </div>
+          <BottomCardRow event={event} date={startDate} />
         </div>
       );
     }

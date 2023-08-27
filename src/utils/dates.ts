@@ -1,4 +1,7 @@
 // Fill the days array with the days specified in the rrule.
+
+import { RouterOutputs } from "./api";
+
 // days[0] = Sunday, days[1] = Monday, etc.
 export const getDays = (rrule: string) => {
   const days = [false, false, false, false, false, false, false];
@@ -95,3 +98,69 @@ export const getEndDate = (rrule: string) => {
 
     throw new Error("Invalid day in rrule.");
 }
+
+export const getDefaultTime = ({
+  startDate,
+}: {
+  startDate: RouterOutputs["event"]["getEventStart"] | undefined | null;
+}) => {
+  let baseDate;
+  if (!startDate) {
+    baseDate = new Date();
+  } else {
+    baseDate = new Date(startDate.start);
+  }
+
+  const maxDay = new Date(
+    baseDate.getFullYear() + 2,
+    baseDate.getMonth(),
+    baseDate.getDate()
+  );
+  const minDay = new Date(
+    baseDate.getFullYear() - 2,
+    baseDate.getMonth(),
+    baseDate.getDate()
+  );
+
+  const defaultDate =
+    baseDate.getFullYear().toString() +
+    "-" +
+    (baseDate.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    baseDate.getDate().toString().padStart(2, "0");
+  const defaultMax =
+    maxDay.getFullYear().toString() +
+    "-" +
+    (maxDay.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    maxDay.getDate().toString().padStart(2, "0");
+  const defaultMin =
+    minDay.getFullYear().toString() +
+    "-" +
+    (minDay.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    minDay.getDate().toString().padStart(2, "0");
+
+  const hours = String(baseDate.getHours()).padStart(2, "0");
+  const minutes = String(baseDate.getMinutes()).padStart(2, "0");
+  const defaultStartTime = `${hours}:${minutes}`;
+
+  let defaultEndTime;
+
+  if (startDate) {
+    const dateEnd = new Date(startDate.end);
+    const hoursEnd = dateEnd.getHours().toString().padStart(2, "0");
+    const minutesEnd = dateEnd.getMinutes().toString().padStart(2, "0");
+    defaultEndTime = `${hoursEnd}:${minutesEnd}`;
+  } else {
+    defaultEndTime = defaultStartTime;
+  }
+
+  return {
+    defaultDate,
+    defaultMax,
+    defaultMin,
+    defaultStartTime,
+    defaultEndTime,
+  };
+};

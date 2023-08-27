@@ -42,7 +42,7 @@ export const dateRouter = createTRPCRouter({
               {
                 owners: {
                   some: {
-                    id: ctx.session?.user.id,
+                    id: ctx.session?.user.id ?? "-1",
                   },
                 },
               },

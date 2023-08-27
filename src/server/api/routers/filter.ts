@@ -20,8 +20,6 @@ export const filterRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-        console.log("Fetched filter events");
-      console.log(input);
       const visibleEvents = getRoleOrLower(ctx.session?.user?.role);
       const filteredEvents = await ctx.prisma.event.findMany({
         where: {
@@ -50,7 +48,7 @@ export const filterRouter = createTRPCRouter({
               end: {
                 lte: input.endDate
                   ? new Date(input.endDate)
-                  : new Date(8640000000000),
+                  : new Date(8640000000000000),
               },
             },
           },
@@ -136,7 +134,6 @@ export const filterRouter = createTRPCRouter({
       });
 
       const res = secondFilter.map((event) => event.id);
-      console.log(res);
       return res;
     }),
 });
