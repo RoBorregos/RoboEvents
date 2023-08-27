@@ -287,8 +287,8 @@ export default function Find() {
           <div className="m-2 mb-auto mt-auto flex h-fit flex-col items-center justify-center rounded-lg bg-themebg p-2">
             <button
               className="rounded-xl bg-green-500 p-1 text-themebg"
-              onClick={() => {
-                refetch();
+              onClick={async () => {
+                await refetch();
               }}
             >
               Search

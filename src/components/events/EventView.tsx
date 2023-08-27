@@ -1,16 +1,12 @@
 import { api } from "~/utils/api";
 import { PageSubtitle } from "~/components/general/PageElements";
 import { useState } from "react";
-import { AiOutlineEdit } from "react-icons/ai";
 import type { RouterOutputs } from "~/utils/api";
 import ValidImage from "../general/ValidImage";
 import { twMerge } from "tailwind-merge";
-import Link from "next/link";
-import { AiOutlineExpandAlt, AiFillDelete } from "react-icons/ai";
 import { MdExpandMore, MdExpandLess } from "react-icons/md";
 import { GenerateTags } from "~/components/general/Generate";
 import type { DateStamp } from "@prisma/client";
-import { OptionsContainer, OptionsInnerContainer } from "../general/Containers";
 import { BottomCardRow } from "./BottomCardRow";
 import { CardDetailsRow } from "./CardDetailsRow";
 
@@ -48,8 +44,9 @@ const PageContent = ({
   event: RouterOutputs["event"]["getConciseEventInfo"] | undefined | null;
   isLoading: boolean;
 }) => {
-  const context = api.useContext();
-  const { data: canEdit } = api.event.canEdit.useQuery({ id: dateStamp.eventId });
+  const { data: canEdit } = api.event.canEdit.useQuery({
+    id: dateStamp.eventId,
+  });
 
   const [displayDetails, setDisplayDetails] = useState(false);
   if (isLoading) {
@@ -93,7 +90,12 @@ const PageContent = ({
                   <b>{dateStamp.start.toLocaleDateString()}</b>
                 </p>
                 <p>
-                  <b>{getTimeString({ start: dateStamp.start, end: dateStamp.end })}</b>
+                  <b>
+                    {getTimeString({
+                      start: dateStamp.start,
+                      end: dateStamp.end,
+                    })}
+                  </b>
                 </p>
               </div>
             </div>

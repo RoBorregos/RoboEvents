@@ -1,6 +1,6 @@
 // Fill the days array with the days specified in the rrule.
 
-import { RouterOutputs } from "./api";
+import type { RouterOutputs } from "./api";
 
 // days[0] = Sunday, days[1] = Monday, etc.
 export const getDays = (rrule: string) => {
@@ -62,18 +62,18 @@ export const generateDates = (
     const repEnd = getEndDate(rrule);
 
     while (iterateDay <= repEnd) {
-        if (days[iterateDay.getDay()]) {
-            const newStart = new Date(iterateDay);
-            const newEnd = new Date(iterateDay);
-            newEnd.setHours(endHour);
-            newEnd.setMinutes(endMinutes);
-            individualDates.push({
-            start: newStart,
-            end: newEnd,
-            });
-        }
-    
-        iterateDay.setDate(iterateDay.getDate() + 1);
+      if (days[iterateDay.getDay()]) {
+        const newStart = new Date(iterateDay);
+        const newEnd = new Date(iterateDay);
+        newEnd.setHours(endHour);
+        newEnd.setMinutes(endMinutes);
+        individualDates.push({
+          start: newStart,
+          end: newEnd,
+        });
+      }
+
+      iterateDay.setDate(iterateDay.getDate() + 1);
     }
 
     return individualDates;
@@ -86,18 +86,18 @@ export const generateDates = (
 };
 
 export const getEndDate = (rrule: string) => {
-    const pattern = /UNTIL=([^;]*);/;
-    const endDate = rrule.match(pattern);
+  const pattern = /UNTIL=([^;]*);/;
+  const endDate = rrule.match(pattern);
 
-    if (endDate && endDate[1]) {
-        const year = endDate[1].slice(0, 4);
-        const month = endDate[1].slice(4, 6);
-        const day = endDate[1].slice(6, 8);
-        return new Date(`${year}-${month}-${day}`);
-    }
+  if (endDate && endDate[1]) {
+    const year = endDate[1].slice(0, 4);
+    const month = endDate[1].slice(4, 6);
+    const day = endDate[1].slice(6, 8);
+    return new Date(`${year}-${month}-${day}`);
+  }
 
-    throw new Error("Invalid day in rrule.");
-}
+  throw new Error("Invalid day in rrule.");
+};
 
 export const getDefaultTime = ({
   startDate,

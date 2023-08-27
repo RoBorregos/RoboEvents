@@ -1,11 +1,11 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
-import { RouterOutputs, api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 
 import { AddToCalendarButton } from "add-to-calendar-button-react";
 import { getDefaultTime } from "~/utils/dates";
-import { DateStamp } from "@prisma/client";
+import type { DateStamp } from "@prisma/client";
 
 export const BottomCardRow = ({
   event,
