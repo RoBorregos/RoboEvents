@@ -46,7 +46,7 @@ export const filterRouter = createTRPCRouter({
               end: {
                 lte: input.endDate
                   ? new Date(input.endDate)
-                  : new Date(8640000000000),
+                  : new Date(86400000000000),
               },
             },
           },

@@ -12,7 +12,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const routes = [
     { name: "Home", path: "/" },
-    { name: "Add event", path: "/add-event" },
+    { name: "Find", path: "/find" },
+    { name: "Add event", path: "/add-event", visibility: "organizationMember" },
     {
       name: "About",
       path: "https://github.com/Oscar-gg/EventManager#readme",

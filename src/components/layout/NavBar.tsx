@@ -2,6 +2,7 @@ import { signOut, signIn, useSession } from "next-auth/react";
 import ValidImage from "~/components/general/ValidImage";
 import { useState } from "react";
 import Link from "next/link";
+import { compareRole } from "~/utils/role";
 
 // TODO:
 // Make current page be highlighted in the navbar.
@@ -9,11 +10,31 @@ import Link from "next/link";
 const NavBar = ({
   routes,
 }: {
-  routes: { name: string; path: string; target?: "_blank" | "self" }[];
+  routes: {
+    name: string;
+    path: string;
+    target?: "_blank" | "self";
+    visibility?: string;
+  }[];
 }) => {
   const { data: sessionData } = useSession();
 
   const [closed, setClosed] = useState(true); // State of mobile menu
+
+  // Fiter routes based on visibility
+  const filteredRoutes = routes.filter((route) => {
+    if (!route.visibility) return true;
+
+    if (
+      compareRole({
+        requiredRole: route.visibility,
+        userRole: sessionData?.user.role,
+      })
+    )
+      return true;
+
+    return false;
+  });
 
   return (
     <nav className="bg-gray-800">
@@ -74,7 +95,7 @@ const NavBar = ({
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
                 {/* <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" --> */}
-                {routes.map((route) => (
+                {filteredRoutes.map((route) => (
                   <Link
                     href={route.path}
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -142,7 +163,7 @@ const NavBar = ({
         <div className="sm:hidden" id="mobile-menu">
           <div className="space-y-1 px-2 pb-3 pt-2">
             {/* <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" --> */}
-            {routes.map((route) => (
+            {filteredRoutes.map((route) => (
               <Link
                 href={route.path}
                 className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
