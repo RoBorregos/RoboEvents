@@ -1,35 +1,35 @@
 import type { Prisma } from "./db";
 import { z } from "zod";
 type GithubOrganization = {
-  login: string;
-  id: number;
-  node_id: string;
-  url: string;
-  repos_url: string;
-  events_url: string;
-  hooks_url: string;
-  issues_url: string;
-  members_url: string;
-  public_members_url: string;
-  avatar_url: string;
-  description: string;
+  login: string | null;
+  id: number | null;
+  node_id: string | null;
+  url: string | null;
+  repos_url: string | null;
+  events_url: string | null;
+  hooks_url: string | null;
+  issues_url: string | null;
+  members_url: string | null;
+  public_members_url: string | null;
+  avatar_url: string | null;
+  description: string | null;
   [key: string]: any; // Index signature for additional properties
 };
 
 const expectedOrganizationSchema = z
   .object({
-    login: z.string(),
-    id: z.number(),
-    node_id: z.string(),
-    url: z.string(),
-    repos_url: z.string(),
-    events_url: z.string(),
-    hooks_url: z.string(),
-    issues_url: z.string(),
-    members_url: z.string(),
-    public_members_url: z.string(),
-    avatar_url: z.string(),
-    description: z.string(),
+    login: z.string().nullable(),
+    id: z.number().nullable(),
+    node_id: z.string().nullable(),
+    url: z.string().nullable(),
+    repos_url: z.string().nullable(),
+    events_url: z.string().nullable(),
+    hooks_url: z.string().nullable(),
+    issues_url: z.string().nullable(),
+    members_url: z.string().nullable(),
+    public_members_url: z.string().nullable(),
+    avatar_url: z.string().nullable(),
+    description: z.string().nullable(),
   })
   .catchall(z.unknown())
   .array();
