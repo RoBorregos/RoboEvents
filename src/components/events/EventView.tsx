@@ -149,34 +149,23 @@ export const getTimeString = ({
   start: Date | undefined | null;
   end: Date | undefined | null;
 }) => {
-  const startString = start ? start.toLocaleString() : "???";
-  const endString = end ? end.toLocaleString() : "???";
 
-  const startHour = startString.split(", ")[1];
-  const endHour = endString.split(", ")[1];
+  let startT = "???";
+  let endT = "???";
 
-  let startT;
-  let endT;
-
-  if (startHour) {
-    startT = startHour?.slice(0, -6);
-  }
-  if (endHour) {
-    endT = endHour?.slice(0, -6);
+  if (start){
+    startT = start.getHours().toString().padStart(2, "0") + ":" + start.getMinutes().toString().padStart(2, "0");
   }
 
-  // Add pm or am at the end if both are the same
-  let addFinal = "";
-  if (startHour?.endsWith("AM") && endHour?.endsWith("AM")) {
-    addFinal = " AM";
-  } else if (startHour?.endsWith("PM") && endHour?.endsWith("PM")) {
-    addFinal = " PM";
-  } else {
-    startT = (startT ?? "") + " " + (startHour?.slice(-2) ?? "");
-    endT = (endT ?? "") + " " + (endHour?.slice(-2) ?? "");
+  if (end){
+    endT = end.getHours().toString().padStart(2, "0") + ":" + end.getMinutes().toString().padStart(2, "0");
   }
 
-  return `${startT ?? "???"} - ${endT ?? "???"} ${addFinal}`;
+  if (start && end && (start.getHours() > end.getHours() || (start.getHours() == end.getHours() && start.getMinutes() > end.getMinutes()))){
+    return `${startT} - ${endT} (next day)`;
+  }
+
+  return `${startT} - ${endT}`;
 };
 
 const acotateText = ({
