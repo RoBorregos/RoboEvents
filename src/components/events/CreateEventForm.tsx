@@ -9,6 +9,7 @@ import { twMerge } from "tailwind-merge";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { PageSubtitle } from "../general/PageElements";
 import { roleOrLower } from "~/utils/role";
 import type { RouterOutputs } from "~/utils/api";
@@ -38,6 +39,7 @@ export const CreateEventForm = ({
   const { data: sessionData, status } = useSession();
   const { data: userID } = api.user.getAllUserId.useQuery();
   const { data: tags } = api.util.getTags.useQuery();
+  const router = useRouter();
 
   const { data: startDate, status: dateStatus } =
     api.event.getEventStart.useQuery({
@@ -55,8 +57,10 @@ export const CreateEventForm = ({
           (defaultValues?.id ? "updated" : "created") +
           " successfully!"
       );
+
       void context.event.getEventStart.invalidate({ id: defaultValues?.id });
       void context.dateStamp.getEventsByTime.invalidate();
+      router.push('/')
     },
     onError: (error) => {
       alert(error);
@@ -127,12 +131,14 @@ export const CreateEventForm = ({
         }}
         validationSchema={eventSchema}
         onSubmit={(values) => {
+          const eventPictureLink = (!values.eventPicture || values.eventPicture === "") ? env.NEXT_PUBLIC_DEFAULT_IMAGE : values.eventPicture;
+
           mutation.mutate({
             id: defaultValues?.id,
             name: values.eventName,
             ownersId: values.owners,
             description: values.eventDescription,
-            image: values.eventPicture,
+            image: eventPictureLink,
             location: values.eventLocation,
             visibility: values.visibility,
             tags: values.tags,
@@ -296,7 +302,7 @@ export const CreateEventForm = ({
                     >
                       Event Date
                     </label>
-                    {oneDate ? (
+                    {/* {oneDate ? (
                       <ImCheckboxChecked
                         className="align-middle"
                         size={32}
@@ -308,7 +314,7 @@ export const CreateEventForm = ({
                         onClick={() => setOneDate(true)}
                       />
                     )}
-                    <p className="ml-2 pt-1"> One day </p>
+                    <p className="ml-2 pt-1"> One day </p> */}
                   </div>
                   {oneDate ? (
                     <div className="flex flex-row flex-wrap items-center">
@@ -418,6 +424,7 @@ export const CreateEventForm = ({
                     name="linkfield"
                     onBlur={async (e: ChangeEvent<HTMLInputElement>) => {
                       await setFieldValue("eventPicture", e.target.value, true);
+                      setPicUrl(e.target.value);
                     }}
                   />
                   <Field
@@ -460,7 +467,7 @@ export const CreateEventForm = ({
 
             <div className="mt-2">
               <button type="submit" className={styles.button}>
-                Update
+                {defaultValues?.id ? "Update" : "Create"}
               </button>
             </div>
           </Form>
