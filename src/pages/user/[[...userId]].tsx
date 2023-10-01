@@ -33,10 +33,12 @@ const PageContent = ({
 }) => {
   if (!session && id === "") {
     return (
-      <div>
-        <p>Not signed in</p>
-        <p>Sign in to view your profile information.</p>
-      </div>
+      <>
+        <PageTitle text="Not signed in" />
+        <div className="text-2xl">
+          <p>Sign in to view your profile information.</p>
+        </div>
+      </>
     );
   } else {
     let title = "See Profile";
