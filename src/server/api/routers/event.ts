@@ -367,6 +367,7 @@ export const eventRouter = createTRPCRouter({
               image: input.image as string,
               location: input.location,
               visibility: input.visibility,
+              linkVisibility: input.linkVisibility,
               tags: {
                 set: newTags,
               },
@@ -385,6 +386,7 @@ export const eventRouter = createTRPCRouter({
               image: input.image as string,
               location: input.location,
               visibility: input.visibility,
+              linkVisibility: input.linkVisibility,
               tags: {
                 connect: newTags,
               },

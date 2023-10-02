@@ -14,6 +14,12 @@ export const eventSchema = Yup.object().shape({
       ["admin", "organizationMember", "communityMember", "authenticated", "unauthenticated"],
       "Invalid visibility."
     ),
+  linkVisibility: Yup.string()
+    .required("Required")
+    .oneOf(
+      ["admin", "organizationMember", "communityMember", "authenticated", "unauthenticated"],
+      "Invalid link visibility."
+    ),
   endTime: Yup.string()
     .required("Required")
     .min(5, "Invalid date.")

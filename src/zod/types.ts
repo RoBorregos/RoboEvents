@@ -10,6 +10,7 @@ export const EventModel = z.object({
   image: z.string().nullish(),
   location: z.string(),
   visibility: z.string(),
+  linkVisibility: z.string(),
   tags: z.array(z.string()),
   startTime: z.date(),
   endTime: z.date(),

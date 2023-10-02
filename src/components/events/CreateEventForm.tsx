@@ -3,7 +3,6 @@ import { eventSchema } from "../schemas/eventSchema";
 import { useState, type ChangeEvent } from "react";
 import { api } from "~/utils/api";
 import { env } from "~/env.mjs";
-import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 import ValidImage from "../general/ValidImage";
 import { twMerge } from "tailwind-merge";
 import Select from "react-select";
@@ -60,7 +59,7 @@ export const CreateEventForm = ({
 
       void context.event.getEventStart.invalidate({ id: defaultValues?.id });
       void context.dateStamp.getEventsByTime.invalidate();
-      router.push('/')
+      router.push("/");
     },
     onError: (error) => {
       alert(error);
@@ -103,6 +102,12 @@ export const CreateEventForm = ({
   const defaultVisibility = defaultValues?.visibility
     ? { value: defaultValues.visibility, label: defaultValues.visibility }
     : null;
+  const defaultLinkVisibility = defaultValues?.linkVisibility
+    ? {
+        value: defaultValues.linkVisibility,
+        label: defaultValues.linkVisibility,
+      }
+    : null;
   const defaultOwners = defaultValues?.owners.map((owner) => ({
     value: owner.id,
     label: owner.username ?? owner.name ?? owner.id,
@@ -123,6 +128,9 @@ export const CreateEventForm = ({
           visibility: defaultValues?.visibility
             ? defaultValues.visibility
             : sessionData.user.role ?? "",
+          linkVisibility: defaultValues?.linkVisibility
+            ? defaultValues.linkVisibility
+            : sessionData.user.role ?? "",
           owners: defaultValues?.owners.map((owner) => owner.id) ?? [],
           tags: defaultValues?.tags.map((tag) => tag.name) ?? [],
           startTime: defaultStartTime,
@@ -131,7 +139,10 @@ export const CreateEventForm = ({
         }}
         validationSchema={eventSchema}
         onSubmit={(values) => {
-          const eventPictureLink = (!values.eventPicture || values.eventPicture === "") ? env.NEXT_PUBLIC_DEFAULT_IMAGE : values.eventPicture;
+          const eventPictureLink =
+            !values.eventPicture || values.eventPicture === ""
+              ? env.NEXT_PUBLIC_DEFAULT_IMAGE
+              : values.eventPicture;
 
           mutation.mutate({
             id: defaultValues?.id,
@@ -141,6 +152,7 @@ export const CreateEventForm = ({
             image: eventPictureLink,
             location: values.eventLocation,
             visibility: values.visibility,
+            linkVisibility: values.linkVisibility,
             tags: values.tags,
             startTime: computeDate(values.date, values.startTime),
             endTime: computeDate(values.date, values.endTime),
@@ -211,6 +223,31 @@ export const CreateEventForm = ({
                     component="a"
                     className={styles.errorMsg}
                     name="visibility"
+                  />
+                </div>
+              </div>
+              <div className="my-2">
+                <div className="mr-2 flex flex-row flex-wrap align-middle">
+                  <label className={styles.label} htmlFor="linkVisibility">
+                    Link Visibility:
+                  </label>
+                  <Select
+                    className="text-black"
+                    onChange={async (e) => {
+                      await setFieldValue(
+                        "linkVisibility",
+                        e?.value ?? sessionData.user.role
+                      );
+                    }}
+                    options={visibilityOptions}
+                    defaultValue={defaultLinkVisibility}
+                  />
+                </div>
+                <div className="my-4">
+                  <ErrorMessage
+                    component="a"
+                    className={styles.errorMsg}
+                    name="linkVisibility"
                   />
                 </div>
               </div>
