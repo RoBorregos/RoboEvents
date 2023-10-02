@@ -96,6 +96,7 @@ export const eventRouter = createTRPCRouter({
       if (
         canSeeEvent({
           visibility: event.visibility,
+          linkVisibility: event.linkVisibility,
           ownersId: event.owners.map((owner) => owner.id),
           userId: ctx.session?.user?.id,
           userRole: ctx.session?.user?.role,
@@ -501,11 +502,13 @@ const validateModifyEventPermissions = async ({
 
 const canSeeEvent = ({
   visibility,
+  linkVisibility,
   ownersId,
   userId,
   userRole,
 }: {
   visibility: string;
+  linkVisibility?: string;
   ownersId: string[];
   userId: string | undefined | null;
   userRole: string | undefined | null;
@@ -513,6 +516,15 @@ const canSeeEvent = ({
   if (
     compareRole({
       requiredRole: visibility,
+      userRole: userRole ?? "unauthenticated",
+    })
+  )
+    return true;
+
+  if (
+    linkVisibility &&
+    compareRole({
+      requiredRole: linkVisibility,
       userRole: userRole ?? "unauthenticated",
     })
   )
