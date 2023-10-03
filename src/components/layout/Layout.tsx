@@ -1,7 +1,8 @@
 import Head from "next/head";
 import NavBar from "./NavBar";
+import React from "react";
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({
+const Layout = ({
   children,
   title = "RoboEvents",
   description = "RoboEvents",
@@ -13,7 +14,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({
   const routes = [
     { name: "Home", path: "/" },
     { name: "Find", path: "/find" },
-    { name: "Create event", path: "/add-event", visibility: "organizationMember" },
+    {
+      name: "Create event",
+      path: "/add-event",
+      visibility: "organizationMember",
+    },
     {
       name: "About",
       path: "https://github.com/RoBorregos/RoboEvents#readme",
