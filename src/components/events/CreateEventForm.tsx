@@ -40,9 +40,11 @@ export const CreateEventForm = ({
   const { data: tags } = api.util.getTags.useQuery();
   const router = useRouter();
 
+  const localDefaultValues = (typeof defaultValues !== "string") ? defaultValues : null;
+
   const { data: startDate, status: dateStatus } =
     api.event.getEventStart.useQuery({
-      id: defaultValues?.id ?? "",
+      id: localDefaultValues?.id ?? "",
     });
 
   const mutation = api.event.modifyOrCreateEvent.useMutation({
@@ -53,11 +55,11 @@ export const CreateEventForm = ({
       }
       alert(
         "Event " +
-          (defaultValues?.id ? "updated" : "created") +
+          (localDefaultValues?.id ? "updated" : "created") +
           " successfully!"
       );
 
-      void context.event.getEventStart.invalidate({ id: defaultValues?.id });
+      void context.event.getEventStart.invalidate({ id: localDefaultValues?.id });
       void context.dateStamp.getEventsByTime.invalidate();
       router.push("/");
     },
@@ -67,7 +69,7 @@ export const CreateEventForm = ({
   });
 
   const [oneDate, setOneDate] = useState(true);
-  const [picUrl, setPicUrl] = useState(defaultValues?.image || "");
+  const [picUrl, setPicUrl] = useState(localDefaultValues?.image || "");
 
   const {
     defaultDate,
@@ -99,20 +101,20 @@ export const CreateEventForm = ({
   const tagOptions = getTagOptions(tags);
 
   // Get default values for selects
-  const defaultVisibility = defaultValues?.visibility
-    ? { value: defaultValues.visibility, label: defaultValues.visibility }
+  const defaultVisibility = localDefaultValues?.visibility
+    ? { value: localDefaultValues.visibility, label: localDefaultValues.visibility }
     : null;
-  const defaultLinkVisibility = defaultValues?.linkVisibility
+  const defaultLinkVisibility = localDefaultValues?.linkVisibility
     ? {
-        value: defaultValues.linkVisibility,
-        label: defaultValues.linkVisibility,
+        value: localDefaultValues.linkVisibility,
+        label: localDefaultValues.linkVisibility,
       }
     : null;
-  const defaultOwners = defaultValues?.owners.map((owner) => ({
+  const defaultOwners = localDefaultValues?.owners.map((owner) => ({
     value: owner.id,
     label: owner.username ?? owner.name ?? owner.id,
   }));
-  const defaultTags = defaultValues?.tags.map((tag) => ({
+  const defaultTags = localDefaultValues?.tags.map((tag) => ({
     value: tag.name,
     label: tag.name,
   }));
@@ -121,18 +123,18 @@ export const CreateEventForm = ({
     <div className={styles.container}>
       <Formik
         initialValues={{
-          eventName: defaultValues?.name ?? "",
-          eventDescription: defaultValues?.description ?? "",
-          eventPicture: defaultValues?.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
-          eventLocation: defaultValues?.location ?? "",
-          visibility: defaultValues?.visibility
-            ? defaultValues.visibility
+          eventName: localDefaultValues?.name ?? "",
+          eventDescription: localDefaultValues?.description ?? "",
+          eventPicture: localDefaultValues?.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
+          eventLocation: localDefaultValues?.location ?? "",
+          visibility: localDefaultValues?.visibility
+            ? localDefaultValues.visibility
             : sessionData.user.role ?? "",
-          linkVisibility: defaultValues?.linkVisibility
-            ? defaultValues.linkVisibility
+          linkVisibility: localDefaultValues?.linkVisibility
+            ? localDefaultValues.linkVisibility
             : sessionData.user.role ?? "",
-          owners: defaultValues?.owners.map((owner) => owner.id) ?? [],
-          tags: defaultValues?.tags.map((tag) => tag.name) ?? [],
+          owners: localDefaultValues?.owners.map((owner) => owner.id) ?? [],
+          tags: localDefaultValues?.tags.map((tag) => tag.name) ?? [],
           startTime: defaultStartTime,
           endTime: defaultEndTime,
           date: defaultDate,
@@ -145,7 +147,7 @@ export const CreateEventForm = ({
               : values.eventPicture;
 
           mutation.mutate({
-            id: defaultValues?.id,
+            id: localDefaultValues?.id,
             name: values.eventName,
             ownersId: values.owners,
             description: values.eventDescription,
@@ -504,7 +506,7 @@ export const CreateEventForm = ({
 
             <div className="mt-2">
               <button type="submit" className={styles.button}>
-                {defaultValues?.id ? "Update" : "Create"}
+                {localDefaultValues?.id ? "Update" : "Create"}
               </button>
             </div>
           </Form>

@@ -101,10 +101,11 @@ export const eventRouter = createTRPCRouter({
           userId: ctx.session?.user?.id,
           userRole: ctx.session?.user?.role,
         })
-      )
+      ) {
         return event;
-
-      return null;
+      } else {
+        return `Not allowed, needed role: ${event.visibility}.`;
+      }
     }),
   getEventStart: publicProcedure
     .input(z.object({ id: z.string() }))
