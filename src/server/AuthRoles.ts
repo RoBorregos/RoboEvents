@@ -63,7 +63,7 @@ export const updateRole = async (
     if (isRoborregos) return "organizationMember";
 
     // Auth for community members (@tec)
-    const isCommunity = await isCommunityMember(email);
+    const isCommunity = isCommunityMember(email);
 
     if (isCommunity) return "communityMember";
   }
@@ -112,6 +112,6 @@ const getUserOrganizations = async (organizations_url: string) => {
   }
 };
 
-const isCommunityMember = async (email: string) => {
+const isCommunityMember = (email: string) => {
   return email.endsWith("@tec.mx");
 };

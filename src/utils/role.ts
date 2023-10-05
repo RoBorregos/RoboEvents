@@ -1,11 +1,11 @@
-interface Roles {
-  role:
-    | "admin"
-    | "organizationMember"
-    | "communityMember"
-    | "authenticated"
-    | "unauthenticated";
-}
+// interface Roles {
+//   role:
+//     | "admin"
+//     | "organizationMember"
+//     | "communityMember"
+//     | "authenticated"
+//     | "unauthenticated";
+// }
 
 const adminOrUpper = ["admin"];
 const organizationMemberOrUpper = [...adminOrUpper, "organizationMember"];
