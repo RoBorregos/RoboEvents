@@ -96,14 +96,16 @@ export const eventRouter = createTRPCRouter({
       if (
         canSeeEvent({
           visibility: event.visibility,
+          linkVisibility: event.linkVisibility,
           ownersId: event.owners.map((owner) => owner.id),
           userId: ctx.session?.user?.id,
           userRole: ctx.session?.user?.role,
         })
-      )
+      ) {
         return event;
-
-      return null;
+      } else {
+        return `Not allowed, needed role: ${event.visibility}.`;
+      }
     }),
   getEventStart: publicProcedure
     .input(z.object({ id: z.string() }))
@@ -367,6 +369,7 @@ export const eventRouter = createTRPCRouter({
               image: input.image as string,
               location: input.location,
               visibility: input.visibility,
+              linkVisibility: input.linkVisibility,
               tags: {
                 set: newTags,
               },
@@ -385,6 +388,7 @@ export const eventRouter = createTRPCRouter({
               image: input.image as string,
               location: input.location,
               visibility: input.visibility,
+              linkVisibility: input.linkVisibility,
               tags: {
                 connect: newTags,
               },
@@ -401,6 +405,40 @@ export const eventRouter = createTRPCRouter({
       }
 
       return true;
+    }),
+  getEventNameAndDescription: publicProcedure
+    .input(z.object({ id: z.string().nullish() }))
+    .query(async ({ input, ctx }) => {
+      const event = await ctx.prisma.event.findUnique({
+        where: {
+          id: input.id ?? "-1",
+        },
+        select: {
+          name: true,
+          linkVisibility: true,
+          visibility: true,
+          description: true,
+        },
+      });
+
+      if (!event) return { name: "RoboEvents", description: "Event not found" };
+
+      // Only check if user can see the event. Modification permission is checked in the mutation
+      if (
+        canSeeEvent({
+          visibility: event.visibility,
+          linkVisibility: event.linkVisibility,
+          userId: ctx.session?.user?.id,
+          userRole: ctx.session?.user?.role,
+        })
+      ) {
+        return { name: event.name, description: event.description };
+      } else {
+        return {
+          name: "RoboEvents",
+          description: `Not allowed, needed role: ${event.visibility}.`,
+        };
+      }
     }),
 });
 
@@ -499,12 +537,14 @@ const validateModifyEventPermissions = async ({
 
 const canSeeEvent = ({
   visibility,
+  linkVisibility,
   ownersId,
   userId,
   userRole,
 }: {
   visibility: string;
-  ownersId: string[];
+  linkVisibility?: string;
+  ownersId?: string[];
   userId: string | undefined | null;
   userRole: string | undefined | null;
 }) => {
@@ -516,7 +556,16 @@ const canSeeEvent = ({
   )
     return true;
 
-  if (ownersId.includes(userId ?? "-1")) return true;
+  if (
+    linkVisibility &&
+    compareRole({
+      requiredRole: linkVisibility,
+      userRole: userRole ?? "unauthenticated",
+    })
+  )
+    return true;
+
+  if (ownersId?.includes(userId ?? "-1")) return true;
 
   return false;
 };

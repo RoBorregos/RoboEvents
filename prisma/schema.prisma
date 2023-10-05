@@ -7,8 +7,8 @@ generator client {
 }
 
 datasource db {
-    provider = "cockroachdb"
-    // provider = "sqlite"
+    // provider = "cockroachdb"
+    provider = "sqlite"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -69,18 +69,19 @@ model User {
 }
 
 model Event {
-    id          String      @id @default(cuid())
-    name        String
-    owners      User[]      @relation(name: "owned")
-    confirmed   User[]      @relation(name: "confirmed")
-    description String
-    lastUpdate  DateTime    @updatedAt
-    image       String      @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
-    location    String
-    visibility  String
-    tags        Tag[]
-    dates       DateStamp[]
-    rrule       String?
+    id             String      @id @default(cuid())
+    name           String
+    owners         User[]      @relation(name: "owned")
+    confirmed      User[]      @relation(name: "confirmed")
+    description    String
+    lastUpdate     DateTime    @updatedAt
+    image          String      @default("https://jwxqxlsoznvanzoqgpvb.supabase.co/storage/v1/object/public/profile-pictures/Perfil_default.png")
+    location       String
+    visibility     String
+    linkVisibility String      @default("organizationMember")
+    tags           Tag[]
+    dates          DateStamp[]
+    rrule          String?
     // comment     Comment[]
 }
 

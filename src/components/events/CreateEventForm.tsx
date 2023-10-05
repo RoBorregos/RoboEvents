@@ -3,12 +3,12 @@ import { eventSchema } from "../schemas/eventSchema";
 import { useState, type ChangeEvent } from "react";
 import { api } from "~/utils/api";
 import { env } from "~/env.mjs";
-import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 import ValidImage from "../general/ValidImage";
 import { twMerge } from "tailwind-merge";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { PageSubtitle } from "../general/PageElements";
 import { roleOrLower } from "~/utils/role";
 import type { RouterOutputs } from "~/utils/api";
@@ -38,10 +38,13 @@ export const CreateEventForm = ({
   const { data: sessionData, status } = useSession();
   const { data: userID } = api.user.getAllUserId.useQuery();
   const { data: tags } = api.util.getTags.useQuery();
+  const router = useRouter();
+
+  const localDefaultValues = (typeof defaultValues !== "string") ? defaultValues : null;
 
   const { data: startDate, status: dateStatus } =
     api.event.getEventStart.useQuery({
-      id: defaultValues?.id ?? "",
+      id: localDefaultValues?.id ?? "",
     });
 
   const mutation = api.event.modifyOrCreateEvent.useMutation({
@@ -52,11 +55,13 @@ export const CreateEventForm = ({
       }
       alert(
         "Event " +
-          (defaultValues?.id ? "updated" : "created") +
+          (localDefaultValues?.id ? "updated" : "created") +
           " successfully!"
       );
-      void context.event.getEventStart.invalidate({ id: defaultValues?.id });
+
+      void context.event.getEventStart.invalidate({ id: localDefaultValues?.id });
       void context.dateStamp.getEventsByTime.invalidate();
+      router.push("/");
     },
     onError: (error) => {
       alert(error);
@@ -64,7 +69,7 @@ export const CreateEventForm = ({
   });
 
   const [oneDate, setOneDate] = useState(true);
-  const [picUrl, setPicUrl] = useState(defaultValues?.image || "");
+  const [picUrl, setPicUrl] = useState(localDefaultValues?.image || "");
 
   const {
     defaultDate,
@@ -96,14 +101,20 @@ export const CreateEventForm = ({
   const tagOptions = getTagOptions(tags);
 
   // Get default values for selects
-  const defaultVisibility = defaultValues?.visibility
-    ? { value: defaultValues.visibility, label: defaultValues.visibility }
+  const defaultVisibility = localDefaultValues?.visibility
+    ? { value: localDefaultValues.visibility, label: localDefaultValues.visibility }
     : null;
-  const defaultOwners = defaultValues?.owners.map((owner) => ({
+  const defaultLinkVisibility = localDefaultValues?.linkVisibility
+    ? {
+        value: localDefaultValues.linkVisibility,
+        label: localDefaultValues.linkVisibility,
+      }
+    : null;
+  const defaultOwners = localDefaultValues?.owners.map((owner) => ({
     value: owner.id,
     label: owner.username ?? owner.name ?? owner.id,
   }));
-  const defaultTags = defaultValues?.tags.map((tag) => ({
+  const defaultTags = localDefaultValues?.tags.map((tag) => ({
     value: tag.name,
     label: tag.name,
   }));
@@ -112,29 +123,38 @@ export const CreateEventForm = ({
     <div className={styles.container}>
       <Formik
         initialValues={{
-          eventName: defaultValues?.name ?? "",
-          eventDescription: defaultValues?.description ?? "",
-          eventPicture: defaultValues?.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
-          eventLocation: defaultValues?.location ?? "",
-          visibility: defaultValues?.visibility
-            ? defaultValues.visibility
+          eventName: localDefaultValues?.name ?? "",
+          eventDescription: localDefaultValues?.description ?? "",
+          eventPicture: localDefaultValues?.image ?? env.NEXT_PUBLIC_DEFAULT_IMAGE,
+          eventLocation: localDefaultValues?.location ?? "",
+          visibility: localDefaultValues?.visibility
+            ? localDefaultValues.visibility
             : sessionData.user.role ?? "",
-          owners: defaultValues?.owners.map((owner) => owner.id) ?? [],
-          tags: defaultValues?.tags.map((tag) => tag.name) ?? [],
+          linkVisibility: localDefaultValues?.linkVisibility
+            ? localDefaultValues.linkVisibility
+            : sessionData.user.role ?? "",
+          owners: localDefaultValues?.owners.map((owner) => owner.id) ?? [],
+          tags: localDefaultValues?.tags.map((tag) => tag.name) ?? [],
           startTime: defaultStartTime,
           endTime: defaultEndTime,
           date: defaultDate,
         }}
         validationSchema={eventSchema}
         onSubmit={(values) => {
+          const eventPictureLink =
+            !values.eventPicture || values.eventPicture === ""
+              ? env.NEXT_PUBLIC_DEFAULT_IMAGE
+              : values.eventPicture;
+
           mutation.mutate({
-            id: defaultValues?.id,
+            id: localDefaultValues?.id,
             name: values.eventName,
             ownersId: values.owners,
             description: values.eventDescription,
-            image: values.eventPicture,
+            image: eventPictureLink,
             location: values.eventLocation,
             visibility: values.visibility,
+            linkVisibility: values.linkVisibility,
             tags: values.tags,
             startTime: computeDate(values.date, values.startTime),
             endTime: computeDate(values.date, values.endTime),
@@ -205,6 +225,31 @@ export const CreateEventForm = ({
                     component="a"
                     className={styles.errorMsg}
                     name="visibility"
+                  />
+                </div>
+              </div>
+              <div className="my-2">
+                <div className="mr-2 flex flex-row flex-wrap align-middle">
+                  <label className={styles.label} htmlFor="linkVisibility">
+                    Link Visibility:
+                  </label>
+                  <Select
+                    className="text-black"
+                    onChange={async (e) => {
+                      await setFieldValue(
+                        "linkVisibility",
+                        e?.value ?? sessionData.user.role
+                      );
+                    }}
+                    options={visibilityOptions}
+                    defaultValue={defaultLinkVisibility}
+                  />
+                </div>
+                <div className="my-4">
+                  <ErrorMessage
+                    component="a"
+                    className={styles.errorMsg}
+                    name="linkVisibility"
                   />
                 </div>
               </div>
@@ -296,7 +341,7 @@ export const CreateEventForm = ({
                     >
                       Event Date
                     </label>
-                    {oneDate ? (
+                    {/* {oneDate ? (
                       <ImCheckboxChecked
                         className="align-middle"
                         size={32}
@@ -308,7 +353,7 @@ export const CreateEventForm = ({
                         onClick={() => setOneDate(true)}
                       />
                     )}
-                    <p className="ml-2 pt-1"> One day </p>
+                    <p className="ml-2 pt-1"> One day </p> */}
                   </div>
                   {oneDate ? (
                     <div className="flex flex-row flex-wrap items-center">
@@ -418,6 +463,7 @@ export const CreateEventForm = ({
                     name="linkfield"
                     onBlur={async (e: ChangeEvent<HTMLInputElement>) => {
                       await setFieldValue("eventPicture", e.target.value, true);
+                      setPicUrl(e.target.value);
                     }}
                   />
                   <Field
@@ -460,7 +506,7 @@ export const CreateEventForm = ({
 
             <div className="mt-2">
               <button type="submit" className={styles.button}>
-                Update
+                {localDefaultValues?.id ? "Update" : "Create"}
               </button>
             </div>
           </Form>

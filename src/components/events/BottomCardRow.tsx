@@ -21,9 +21,11 @@ export const BottomCardRow = ({
 }) => {
   const { data: sessionData } = useSession();
   const context = api.useContext();
+
+  const eventlocal = (typeof event !== "string") ? event : null;
   const { isLoading: loadingConfirmed } = api.user.isConfirmed.useQuery(
     {
-      eventId: event?.id,
+      eventId: eventlocal?.id,
       userId: sessionData?.user?.id,
     },
     {
@@ -63,7 +65,7 @@ export const BottomCardRow = ({
               size={25}
               onClick={() => {
                 mutationUser.mutate({
-                  eventId: event?.id,
+                  eventId: eventlocal?.id,
                   userId: sessionData?.user?.id,
                   confirmed: false,
                 });
@@ -74,7 +76,7 @@ export const BottomCardRow = ({
               size={25}
               onClick={() => {
                 mutationUser.mutate({
-                  eventId: event?.id,
+                  eventId: eventlocal?.id,
                   userId: sessionData?.user?.id,
                   confirmed: true,
                 });
@@ -89,10 +91,10 @@ export const BottomCardRow = ({
       )}
 
       <AddToCalendarButton
-        name={event?.name ?? "Unnamed event"}
-        description={event?.description}
+        name={eventlocal?.name ?? "Unnamed event"}
+        description={eventlocal?.description}
         options={["Outlook.com", "Apple", "Google", "Yahoo", "iCal"]}
-        location={event?.location ?? "No location."}
+        location={eventlocal?.location ?? "No location."}
         startDate={defaultDate}
         startTime={defaultStartTime}
         endTime={defaultEndTime}

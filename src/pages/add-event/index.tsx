@@ -29,7 +29,7 @@ export default function AddEvent() {
           )
         ) : (
           <div className="text-2xl">
-            <p>Not signed in</p>
+            <p>Not signed in.</p>
             <p>Sign in to create a new event.</p>
           </div>
         )}

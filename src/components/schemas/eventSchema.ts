@@ -14,6 +14,12 @@ export const eventSchema = Yup.object().shape({
       ["admin", "organizationMember", "communityMember", "authenticated", "unauthenticated"],
       "Invalid visibility."
     ),
+  linkVisibility: Yup.string()
+    .required("Required")
+    .oneOf(
+      ["admin", "organizationMember", "communityMember", "authenticated", "unauthenticated"],
+      "Invalid link visibility."
+    ),
   endTime: Yup.string()
     .required("Required")
     .min(5, "Invalid date.")
@@ -41,7 +47,8 @@ export const eventSchema = Yup.object().shape({
   eventPicture: Yup.string()
     .nullable()
     .test("is-img", "Image is not valid.", async (value) => {
-      if (!value) return false;
+      if (!value) return true; // Use default image
+      
       if (value === "data:image") return true;
       const validUrl = await isImgUrl(value);
       return validUrl;

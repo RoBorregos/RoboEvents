@@ -80,94 +80,108 @@ const PageContent = ({
     // Create event
     return <CreateEventForm styles={formStyle} />;
   } else if (event) {
-    // Modify event
-
-    // Used to avoid generating the card details every time.
-    let cardJSX = <></>;
-
-    if (updateEvent) {
-      cardJSX = <CreateEventForm styles={formStyle} defaultValues={event} />;
+    if (typeof event === "string") {
+      // Display a specific message
+      return <PageSubtitle className="text-center text-white" text={event} />;
     } else {
-      cardJSX = (
-        <div className="mt-2 flex flex-col rounded-lg bg-themebg p-2">
-          <div className="flex flex-col">
-            <PageSubtitle
-              className="mb-0 text-center text-3xl text-white"
-              text={event.name}
-            />
-            <div className="mt-2 flex flex-col text-center sm:mt-0">
-              <p>
-                <b>{startDate?.start.toLocaleDateString()}</b>
-              </p>
-              <p>
-                {getTimeString({
-                  start: startDate?.start,
-                  end: startDate?.end,
-                })}
-              </p>
-            </div>
-          </div>
-          <div className="flex w-full flex-col items-center rounded-lg bg-themebg p-2 md:flex-row">
-            <ValidImage
-              className="m-3 h-80 w-80 rounded-lg"
-              src={event.image}
-            />
+      // Modify event
 
-            <div className="flex flex-col justify-between overflow-y-auto sm:h-80 sm:w-80">
-              <p>
-                <b>Description:</b> {event.description}
-              </p>
-              <p>
-                <b>Location:</b> {event.location}
-              </p>
-              <p>
-                <b>Tags:</b>
-              </p>
-              <div className="mt-1 flex flex-row flex-wrap">
-                <GenerateTags tags={event.tags} />
-              </div>
+      // Used to avoid generating the card details every time.
+      let cardJSX = <></>;
 
-              <p>
-                <b>Owners:</b>
-              </p>
-              <div className="mt-1 flex flex-row flex-wrap">
-                <GenerateOwners eventID={event.id} />
-              </div>
-
-              <p className="mt-2">
-                <b>Visibility:</b>
-              </p>
-              <div className="mb-2 mt-1 flex flex-row flex-wrap">
-                <span className="rounded-lg bg-blue-600 p-1">
-                  {event.visibility}
-                </span>
-              </div>
-
-              <p>
-                <b>Confirmed:</b>
-              </p>
-              <div className="mt-1 flex flex-row flex-wrap">
-                <GenerateConfirmed eventID={event.id} />
+      if (updateEvent) {
+        cardJSX = <CreateEventForm styles={formStyle} defaultValues={event} />;
+      } else {
+        cardJSX = (
+          <div className="mt-2 flex flex-col rounded-lg bg-themebg p-2">
+            <div className="flex flex-col">
+              <PageSubtitle
+                className="mb-0 text-center text-3xl text-white"
+                text={event.name}
+              />
+              <div className="mt-2 flex flex-col text-center sm:mt-0">
+                <p>
+                  <b>{startDate?.start.toLocaleDateString()}</b>
+                </p>
+                <p>
+                  {getTimeString({
+                    start: startDate?.start,
+                    end: startDate?.end,
+                  })}
+                </p>
               </div>
             </div>
+            <div className="flex w-full flex-col items-center rounded-lg bg-themebg p-2 md:flex-row">
+              <ValidImage
+                className="m-3 h-80 w-80 rounded-lg"
+                src={event.image}
+              />
+
+              <div className="flex flex-col justify-between overflow-y-auto sm:h-80 sm:w-80">
+                <p>
+                  <b>Description:</b> {event.description}
+                </p>
+                <p>
+                  <b>Location:</b> {event.location}
+                </p>
+                <p>
+                  <b>Tags:</b>
+                </p>
+                <div className="mt-1 flex flex-row flex-wrap">
+                  <GenerateTags tags={event.tags} />
+                </div>
+
+                <p>
+                  <b>Owners:</b>
+                </p>
+                <div className="mt-1 flex flex-row flex-wrap">
+                  <GenerateOwners eventID={event.id} />
+                </div>
+
+                <p className="mt-2">
+                  <b>Visibility:</b>
+                </p>
+                <div className="mb-2 mt-1 flex flex-row flex-wrap">
+                  <span className="rounded-lg bg-blue-600 p-1">
+                    {event.visibility}
+                  </span>
+                </div>
+
+                <p className="mt-2">
+                  <b>Link visibility:</b>
+                </p>
+                <div className="mb-2 mt-1 flex flex-row flex-wrap">
+                  <span className="rounded-lg bg-blue-600 p-1">
+                    {event.linkVisibility}
+                  </span>
+                </div>
+
+                <p>
+                  <b>Confirmed:</b>
+                </p>
+                <div className="mt-1 flex flex-row flex-wrap">
+                  <GenerateConfirmed eventID={event.id} />
+                </div>
+              </div>
+            </div>
+            <BottomCardRow event={event} date={startDate} />
           </div>
-          <BottomCardRow event={event} date={startDate} />
+        );
+      }
+
+      return (
+        <div>
+          <CardDetailsRow
+            canEdit={canEdit}
+            eventID={eventID}
+            showVisit={false}
+            isModifying={true}
+            setUpdateEvent={setUpdateEvent}
+          />
+          {cardJSX}
         </div>
       );
     }
-
-    return (
-      <div>
-        <CardDetailsRow
-          canEdit={canEdit}
-          eventID={eventID}
-          showVisit={false}
-          isModifying={true}
-          setUpdateEvent={setUpdateEvent}
-        />
-        {cardJSX}
-      </div>
-    );
   } else {
     return (
       <PageSubtitle

@@ -62,8 +62,8 @@ export const updateRole = async (
 
     if (isRoborregos) return "organizationMember";
 
-    // Auth for community members (@tec with azure ad)
-    const isCommunity = await isCommunityMember(email, prisma);
+    // Auth for community members (@tec)
+    const isCommunity = isCommunityMember(email);
 
     if (isCommunity) return "communityMember";
   }
@@ -112,22 +112,6 @@ const getUserOrganizations = async (organizations_url: string) => {
   }
 };
 
-const isCommunityMember = async (email: string, prisma: Prisma) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-    include: {
-      accounts: true,
-    },
-  });
-
-  if (user?.accounts) {
-    const community = user.accounts.find(
-      (account) => account.provider === "azure-ad"
-    );
-    if (community) return true;
-  }
-
-  return false;
+const isCommunityMember = (email: string) => {
+  return email.endsWith("@tec.mx");
 };
