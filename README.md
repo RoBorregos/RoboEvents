@@ -32,11 +32,11 @@ There are 4 roles in the app:
   - See events with community visibility or lower.
   - Profile editing.
   - Confirm event assistance.
-  - Role acquired by OAuth using Azure AD. Account must be part of Tec de Monterrey (@tec).
+  - Role acquired by OAuth. Account must be part of Tec de Monterrey (@tec).
 - authenticated:
   - Can only see events with authenticated visibility or lower.
   - Profile editing.
-  - Role acquired by OAuth using Azure AD or github that doesn't meet the requirements for the other roles.
+  - Role acquired by OAuth that doesn't meet the requirements for the other roles.
 - unauthenticated:
   - Can only see events with public visibility.
 
@@ -60,7 +60,7 @@ There are 4 roles in the app:
 - [Vercel:](https://vercel.com) deployment
 - [Supabase:](https://supabase.io) image storage
 - [CockroachDB:](https://cockroachlabs.com) database storage
-- [AzureAd:](https://azure.microsoft.com/en-us/services/active-directory/) OAuth provider
+- [Google:](https://developers.google.com/identity/protocols/oauth2) OAuth provider
 - [GitHub:](https://github.com) OAuth provider
 
 ## Other Libraries
