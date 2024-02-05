@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 import { type RouterOutputs, api } from "~/utils/api";
 
@@ -7,6 +7,9 @@ import { AddToCalendarButton } from "add-to-calendar-button-react";
 import { getDefaultTime } from "~/utils/dates";
 import type { DateStamp } from "@prisma/client";
 import { compareRole } from "~/utils/role";
+import { FaShareNodes } from "react-icons/fa6";
+
+import { env } from "~/env.mjs";
 
 export const BottomCardRow = ({
   event,
@@ -22,7 +25,14 @@ export const BottomCardRow = ({
   const { data: sessionData } = useSession();
   const context = api.useContext();
 
-  const eventlocal = (typeof event !== "string") ? event : null;
+  const eventlocal = typeof event !== "string" ? event : null;
+
+  const shareData = {
+    title: eventlocal?.name ?? "Unnamed event",
+    text: eventlocal?.description ?? "No description.",
+    url: env.NEXT_PUBLIC_PROJECT_URL + "/event/" + (eventlocal?.id ?? ""),
+  };
+
   const { isLoading: loadingConfirmed } = api.user.isConfirmed.useQuery(
     {
       eventId: eventlocal?.id,
@@ -36,6 +46,7 @@ export const BottomCardRow = ({
   );
 
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [canShare, setCanShare] = useState(false);
 
   const mutationUser = api.user.setConfirmed.useMutation({
     onSuccess: (changed) => {
@@ -55,6 +66,10 @@ export const BottomCardRow = ({
     requiredRole: "communityMember",
     userRole: sessionData?.user?.role,
   });
+
+  useEffect(() => {
+    setCanShare(navigator.canShare(shareData));
+  }, [shareData]);
 
   return (
     <div className="m-2 flex flex-row flex-wrap justify-center sm:m-0">
@@ -101,6 +116,15 @@ export const BottomCardRow = ({
         timeZone={"currentBrowser"}
         inline={true}
       ></AddToCalendarButton>
+      {canShare && (
+        <FaShareNodes
+          size={40}
+          className="my-auto"
+          onClick={async () => {
+            await navigator.share(shareData);
+          }}
+        ></FaShareNodes>
+      )}
     </div>
   );
 };
