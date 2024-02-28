@@ -75,7 +75,8 @@ export const BottomCardRow = ({
   });
 
   useEffect(() => {
-    setCanShare(navigator.canShare(shareData));
+    if (navigator)
+      setCanShare(navigator?.canShare(shareData));
   }, [shareData]);
 
   return (
