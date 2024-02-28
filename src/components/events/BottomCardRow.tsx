@@ -11,9 +11,15 @@ import { FaShareNodes } from "react-icons/fa6";
 
 import { env } from "~/env.mjs";
 
-const buildMessage = (name: string | undefined | null, descripton: string | undefined | null, location: string | undefined | null) => {
-  return `${name ?? "Sin nombre"}: ${descripton ?? "Sin descripción"}.📍 ${location ?? "Sin ubicación"}. Agrega el evento a tu calendario, ve lista de confirmados:`;
-}
+const buildMessage = (
+  name: string | undefined | null,
+  descripton: string | undefined | null,
+  location: string | undefined | null
+) => {
+  return `${name ?? "Sin nombre"}: ${descripton ?? "Sin descripción"}.📍 ${
+    location ?? "Sin ubicación"
+  }. Agrega el evento a tu calendario, ve lista de confirmados:`;
+};
 
 export const BottomCardRow = ({
   event,
@@ -35,7 +41,11 @@ export const BottomCardRow = ({
     // Complex title based on props or state
     return {
       title: eventlocal?.name ?? "Unnamed event",
-      text: buildMessage(eventlocal?.name, eventlocal?.description, eventlocal?.location),
+      text: buildMessage(
+        eventlocal?.name,
+        eventlocal?.description,
+        eventlocal?.location
+      ),
       url: env.NEXT_PUBLIC_PROJECT_URL + "/event/" + (eventlocal?.id ?? ""),
     };
   }, [eventlocal?.name, eventlocal?.description, eventlocal?.id]);
@@ -75,7 +85,8 @@ export const BottomCardRow = ({
   });
 
   useEffect(() => {
-    setCanShare(navigator.canShare(shareData));
+    if (navigator && typeof navigator.canShare === "function")
+      setCanShare(navigator?.canShare(shareData));
   }, [shareData]);
 
   return (
