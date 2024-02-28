@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 import { type RouterOutputs, api } from "~/utils/api";
 
@@ -10,6 +10,10 @@ import { compareRole } from "~/utils/role";
 import { FaShareNodes } from "react-icons/fa6";
 
 import { env } from "~/env.mjs";
+
+const buildMessage = (name: string | undefined | null, descripton: string | undefined | null, location: string | undefined | null) => {
+  return `${name ?? "Sin nombre"}: ${descripton ?? "Sin descripción"}.📍 ${location ?? "Sin ubicación"}. Agrega el evento a tu calendario, ve lista de confirmados:`;
+}
 
 export const BottomCardRow = ({
   event,
@@ -27,11 +31,14 @@ export const BottomCardRow = ({
 
   const eventlocal = typeof event !== "string" ? event : null;
 
-  const shareData = {
-    title: eventlocal?.name ?? "Unnamed event",
-    text: eventlocal?.description ?? "No description.",
-    url: env.NEXT_PUBLIC_PROJECT_URL + "/event/" + (eventlocal?.id ?? ""),
-  };
+  const shareData = useMemo(() => {
+    // Complex title based on props or state
+    return {
+      title: eventlocal?.name ?? "Unnamed event",
+      text: buildMessage(eventlocal?.name, eventlocal?.description, eventlocal?.location),
+      url: env.NEXT_PUBLIC_PROJECT_URL + "/event/" + (eventlocal?.id ?? ""),
+    };
+  }, [eventlocal?.name, eventlocal?.description, eventlocal?.id]);
 
   const { isLoading: loadingConfirmed } = api.user.isConfirmed.useQuery(
     {

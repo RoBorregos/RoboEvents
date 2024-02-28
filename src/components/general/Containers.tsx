@@ -10,7 +10,7 @@ export const EventListContainer: FC<React.JSX.IntrinsicElements["div"]> = ({
   return (
     <div
       className={twMerge(
-        "flex flex-row flex-wrap justify-around md:justify-normal",
+        "grid grid-cols-1 md:grid-cols-2 justify-around md:justify-normal",
         className
       )}
       {...props}
@@ -23,7 +23,7 @@ export const EventListContainer: FC<React.JSX.IntrinsicElements["div"]> = ({
 // Container for an EventView
 export const EventContainer = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="mb-2 flex w-5/6 justify-around md:w-1/2 lg:w-1/3">
+    <div className="mb-2 flex w-full justify-around">
       {children}
     </div>
   );
