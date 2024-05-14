@@ -155,6 +155,14 @@ const PageContent = ({
                     {event.linkVisibility}
                   </span>
                 </div>
+                <p className="mt-1">
+                  <b>Short Link:</b>
+                </p>
+                <div className="mb-2 mt-1 flex flex-row flex-wrap">
+                  <span className="rounded-lg bg-blue-600 p-1">
+                    e/{event.shortlink}
+                  </span>
+                </div>
 
                 <p>
                   <b>Confirmed:</b>
