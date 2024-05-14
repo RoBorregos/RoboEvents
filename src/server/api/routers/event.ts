@@ -377,6 +377,7 @@ export const eventRouter = createTRPCRouter({
                 create: dates,
               },
               rrule: input.rrule,
+              shortlink: input.shortLink,
             },
             create: {
               id: input.id as string,
@@ -389,6 +390,7 @@ export const eventRouter = createTRPCRouter({
               location: input.location,
               visibility: input.visibility,
               linkVisibility: input.linkVisibility,
+              shortlink: input.shortLink,
               tags: {
                 connect: newTags,
               },
@@ -439,6 +441,52 @@ export const eventRouter = createTRPCRouter({
           description: `Not allowed, needed role: ${event.visibility}.`,
         };
       }
+    }),
+  getEventByShortName: publicProcedure
+    .input(z.object({ shortLink: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const event = await ctx.prisma.event.findUnique({
+        where: {
+          shortlink: input.shortLink,
+        },
+        select: {
+          id: true,
+          visibility: true,
+          linkVisibility: true,
+        },
+      });
+
+      if (!event) return null;
+
+      // Only check if user can see the event. Else don't pass the id
+      if (
+        canSeeEvent({
+          visibility: event.visibility,
+          linkVisibility: event.linkVisibility,
+          userId: ctx.session?.user?.id,
+          userRole: ctx.session?.user?.role,
+        })
+      ) {
+        return event.id;
+      } else {
+        return null;
+      }
+    }),
+
+  isShortNameAvailable: publicProcedure
+    .input(z.object({ shortLink: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const exist = await ctx.prisma.event.findFirst({
+        where: {
+          shortlink: input.shortLink,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (exist) return false;
+      return true;
     }),
 });
 

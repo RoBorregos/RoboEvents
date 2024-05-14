@@ -135,6 +135,7 @@ export const CreateEventForm = ({
             : sessionData.user.role ?? "",
           owners: localDefaultValues?.owners.map((owner) => owner.id) ?? [],
           tags: localDefaultValues?.tags.map((tag) => tag.name) ?? [],
+          eventShortLink: localDefaultValues?.shortlink,
           startTime: defaultStartTime,
           endTime: defaultEndTime,
           date: defaultDate,
@@ -156,6 +157,7 @@ export const CreateEventForm = ({
             visibility: values.visibility,
             linkVisibility: values.linkVisibility,
             tags: values.tags,
+            shortLink: values.eventShortLink,
             startTime: computeDate(values.date, values.startTime),
             endTime: computeDate(values.date, values.endTime),
           });
@@ -331,13 +333,35 @@ export const CreateEventForm = ({
                   />
                 </div>
               </div>
+               <div className="my-2">
+                <div className="flex flex-row flex-wrap align-top">
+                  <label className={styles.label} htmlFor="eventShortLink">
+                    Event Short link:
+                  </label>
+                  <Field
+                    className={twMerge("h-12", styles.field)}
+                    component="textarea"
+                    rows="4"
+                    id="eventShortLink"
+                    name="eventShortLink"
+                  />
+                </div>
+
+                <div className="my-4">
+                  <ErrorMessage
+                    component="a"
+                    className={styles.errorMsg}
+                    name="eventShortLink"
+                  />
+                </div>
+              </div>
               <hr className="w-full" />
               <div className="my-2">
                 <div className="flex flex-col flex-wrap align-top">
                   <div className="my-2 flex flex-row flex-wrap align-middle">
                     <label
                       className="my-2 mr-8 flex align-middle text-lg font-bold"
-                      htmlFor="eventDescription"
+                      htmlFor="eventDate"
                     >
                       Event Date
                     </label>

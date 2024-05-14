@@ -15,4 +15,5 @@ export const EventModel = z.object({
   startTime: z.date(),
   endTime: z.date(),
   rrule: z.string().nullish(),
+  shortLink: z.string().nullish(),
 });
