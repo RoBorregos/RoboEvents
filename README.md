@@ -4,6 +4,8 @@ Web page aimed towards helping RoBorregos to manage their events and communicate
 
 <ins>Status</ins>: Development
 
+[Demo Video](https://drive.google.com/file/d/1eenRoHsgnqn-lLZw-WuFwqXw01fUWl0X/view?usp=sharing)
+
 ## Features
 
 - Register and modify events (name, description, start & end dates, visibility, tags, owners, location, and more).
