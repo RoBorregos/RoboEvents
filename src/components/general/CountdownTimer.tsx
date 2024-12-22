@@ -1,3 +1,4 @@
+import { time } from "console";
 import React, { useEffect, useState } from "react";
 import { cn } from "~/utils/style";
 
@@ -7,12 +8,17 @@ interface CountdownTimerProps {
 }
 
 const calculateTimeLeft = (targetDate: Date) => {
-  const difference = +targetDate - +new Date();
+  const future = targetDate > new Date();
+  const startDate = future ? new Date() : targetDate;
+  targetDate = future ? targetDate : new Date();
+
+  const difference = +targetDate - +startDate;
   const timeLeft = {
     days: Math.floor(difference / (1000 * 60 * 60 * 24)),
     hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
     minutes: Math.floor((difference / 1000 / 60) % 60),
     seconds: Math.floor((difference / 1000) % 60),
+    future: future,
   };
 
   return timeLeft;
@@ -39,6 +45,9 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         className
       )}
     >
+      {!timeLeft.future && (
+        <p className="mb-12 mt-0 font-digital text-[15rem] text-slate-400">+</p>
+      )}
       {timeLeft.days > 0 && <CountdownLabel time={timeLeft.days} unit="Days" />}
       {(timeLeft.hours > 0 || timeLeft.days > 0) && (
         <CountdownLabel time={timeLeft.hours} unit="Hours" />
