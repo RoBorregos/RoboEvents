@@ -129,10 +129,12 @@ const PageContent = ({
                 <button
                   className="my-2 mr-auto  rounded-lg bg-blue-600 p-1"
                   onClick={() => {
-                    router.push({
-                      pathname: `/countdown`,
-                      query: { ids: [event.id] },
-                    });
+                    router
+                      .push({
+                        pathname: `/countdown`,
+                        query: { ids: [event.id] },
+                      })
+                      .catch((e) => console.log(e));
                   }}
                 >
                   <b>Countdown</b>

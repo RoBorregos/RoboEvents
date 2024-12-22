@@ -26,6 +26,7 @@ import {
   EventListContainer,
   EventContainer,
 } from "~/components/general/Containers";
+import { useRouter } from "next/router";
 
 const animatedComponents = makeAnimated();
 
@@ -150,6 +151,7 @@ export default function Find() {
 
   // first refetch
   const firstRefetch = useRef(true);
+  const router = useRouter();
 
   return (
     <Layout>
@@ -284,7 +286,7 @@ export default function Find() {
           </div>
           <div className="m-2 mb-auto mt-auto flex h-fit flex-col items-center justify-center rounded-lg bg-themebg p-2">
             <button
-              className="rounded-xl bg-green-500 p-1 text-white"
+              className="rounded-xl p-1 text-white"
               onClick={() => {
                 firstRefetch.current = false;
                 refetch().catch((e) => console.log(e));
@@ -293,6 +295,25 @@ export default function Find() {
               Search
             </button>
           </div>
+          {(eventsIds?.length ?? 0) > 0 && (
+            <div className="m-2 mb-auto mt-auto flex h-fit flex-col items-center justify-center rounded-lg bg-themebg p-2">
+              {
+                <button
+                  className="rounded-xl p-1 text-white"
+                  onClick={() => {
+                    router
+                      .push({
+                        pathname: `/countdown`,
+                        query: { ids: eventsIds },
+                      })
+                      .catch((e) => console.log(e));
+                  }}
+                >
+                  Countdown
+                </button>
+              }
+            </div>
+          )}
         </div>
         <DisplayEvents eventIds={eventsIds} firstRefetch={firstRefetch} />
       </PageBody>
