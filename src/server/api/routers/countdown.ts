@@ -46,4 +46,34 @@ export const countdownRouter = createTRPCRouter({
 
       return events;
     }),
+
+  getNextEvents: publicProcedure.query(async ({ ctx }) => {
+    const visibleEvents = getRoleOrLower(ctx.session?.user.role);
+    const now = new Date();
+    const events = await ctx.prisma.dateStamp.findMany({
+      where: {
+        start: {
+          gte: now,
+        },
+        event: {
+          OR: [
+            {
+              visibility: {
+                in: visibleEvents,
+              },
+            },
+          ],
+        },
+      },
+      select: {
+        eventId: true,
+      },
+      orderBy: {
+        start: "asc",
+      },
+      take: 5,
+    });
+
+    return events;
+  }),
 });

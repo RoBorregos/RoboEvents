@@ -12,6 +12,7 @@ import { getTimeString } from "./EventView";
 import { GenerateConfirmed } from "~/components/general/Generate";
 import { CardDetailsRow } from "./CardDetailsRow";
 import { BottomCardRow } from "./BottomCardRow";
+import { useRouter } from "next/router";
 
 const formStyle: CreateEventStyle = {
   label: "text-white mr-2 align-middle flex items-center h-10",
@@ -67,6 +68,7 @@ const PageContent = ({
 }) => {
   const [updateEvent, setUpdateEvent] = useState(editInitial ?? false);
   const { data: canEdit } = api.event.canEdit.useQuery({ id: eventID });
+  const router = useRouter();
 
   const { data: startDate } = api.event.getEventStart.useQuery({
     id: eventID ?? "",
@@ -124,6 +126,18 @@ const PageContent = ({
                 <p>
                   <b>Location:</b> {event.location}
                 </p>
+                <button
+                  className="my-2 mr-auto  rounded-lg bg-blue-600 p-1"
+                  onClick={() => {
+                    router.push({
+                      pathname: `/countdown`,
+                      query: { ids: [event.id] },
+                    });
+                  }}
+                >
+                  <b>Countdown</b>
+                </button>
+
                 <p>
                   <b>Tags:</b>
                 </p>

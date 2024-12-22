@@ -12,22 +12,31 @@ import { useRef } from "react";
 import { CountdownTimer } from "~/components/general/CountdownTimer";
 import { Carousel } from "~/components/general/Carousel";
 
+import { useRouter } from "next/router";
+
 export default function Countdown() {
   // Get the default options for select components, using query params.
+  const router = useRouter();
+  let { ids } = router.query as { ids: string[] | string };
 
-  const ids = [
-    "clld2iist0000lp1c61e2zmpo-1693167491895",
-    "cllv6t5ly0006mv087um4ho5l-1734889134333",
-  ];
+  if (typeof ids === "string") {
+    ids = [ids];
+  }
+
+  const { data: nextEvents } = api.countdown.getNextEvents.useQuery(undefined, {
+    enabled: (ids?.length ?? 0) === 0,
+  });
+
+  const eventsIds = ids ?? nextEvents?.map((event) => event.eventId);
 
   // Get the filtered events
   const { data: events, isLoading } = api.countdown.getEventsByIds.useQuery(
     {
-      ids: ids,
+      ids: eventsIds,
     },
     {
       refetchOnMount: false,
-      enabled: Boolean(ids) && ids.length > 0,
+      enabled: Boolean(eventsIds) && (eventsIds?.length ?? 0) > 0,
     }
   );
 
