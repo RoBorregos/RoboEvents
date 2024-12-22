@@ -1,17 +1,15 @@
 import Layout from "~/components/layout/Layout";
-import {
-  PageBody,
-  PageSubtitle,
-  PageTitle,
-} from "~/components/general/PageElements";
+import Image from "next/image";
+
+import { PageSubtitle, PageTitle } from "~/components/general/PageElements";
 import { api, type RouterOutputs } from "~/utils/api";
 
-import { useRef, useState, useEffect } from "react";
+import teamPic from "../../../public/images/team.jpg";
+import robologo from "../../../public/images/white-logo.png";
 
-import { cn } from "~/utils/style";
+import { useRef } from "react";
 
-import { calculateTimeLeft } from "~/utils/dates";
-import Carousel from "~/components/general/Carousel";
+import { CountdownTimer } from "~/components/general/CountdownTimer";
 
 export default function Countdown() {
   // Get the default options for select components, using query params.
@@ -44,16 +42,43 @@ export default function Countdown() {
 
   return (
     <Layout>
-      <PageBody>
-        <Carousel />
-        {isLoading ? (
-          <PageTitle text="Loading..." />
-        ) : currentEvent ? (
-          <DisplayEvent event={currentEvent} />
-        ) : (
-          <PageSubtitle text="No events found" />
-        )}
-      </PageBody>
+      <main className="bg-black">
+        <section className="relative flex min-h-[100vw] flex-col overflow-hidden lg:min-h-screen">
+          <div className="z-10 mt-[45vw] text-center lg:mt-32">
+            {/* <h1 className="font-jersey_25 text-roboblue text-[13vw] leading-none lg:text-[12vw]">
+              CANDIDATES
+            </h1>
+            <p className="font-anton mt-[-2vw] text-[6vw] text-white lg:text-[3vw]">
+              By RoBorregos
+            </p> */}
+          </div>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+            <Image
+              src={robologo}
+              alt=""
+              className="w-[40vw] object-cover opacity-20 lg:w-[40vw]"
+            />
+          </div>
+          <div className="absolute inset-0 z-20 bg-gradient-to-t from-black to-transparent" />
+          <Image
+            src={teamPic}
+            alt=""
+            layout="fill"
+            objectFit="cover"
+            className="opacity-20"
+            // the black fade is covering the image
+          />
+        </section>
+        <div className="absolute inset-20 z-30">
+          {isLoading ? (
+            <PageTitle text="Loading..." />
+          ) : currentEvent ? (
+            <DisplayEvent event={currentEvent} />
+          ) : (
+            <PageSubtitle text="No events found" />
+          )}
+        </div>
+      </main>
     </Layout>
   );
 }
@@ -64,49 +89,14 @@ const DisplayEvent = ({
   event: RouterOutputs["countdown"]["getEventsByIds"][0];
 }) => {
   const targetDate = new Date(event.dates[0]?.start ?? new Date());
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTimeLeft(calculateTimeLeft(targetDate));
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  });
 
   return (
-    <div
-      className={cn(
-        "font-archivo flex flex-row items-center justify-center gap-x-20 text-5xl text-white"
-      )}
-    >
-      {timeLeft.days > 0 && <CountdownLabel time={timeLeft.days} unit="Days" />}
-      {(timeLeft.hours > 0 || timeLeft.days > 0) && (
-        <CountdownLabel time={timeLeft.hours} unit="Hours" />
-      )}
-      {(timeLeft.hours > 0 || timeLeft.days > 0 || timeLeft.minutes > 0) && (
-        <CountdownLabel time={timeLeft.minutes} unit="Minutes" />
-      )}
-      {(timeLeft.hours > 0 ||
-        timeLeft.days > 0 ||
-        timeLeft.minutes > 0 ||
-        timeLeft.seconds > 0) && (
-        <CountdownLabel time={timeLeft.seconds} unit="Seconds" />
-      )}
-    </div>
-  );
-};
-
-const CountdownLabel = ({ time, unit }: { time: number; unit: string }) => {
-  return (
-    <div className="flex flex-col gap-y-5 text-center">
-      <p
-        className="font-digital text-9xl text-slate-400"
-        suppressHydrationWarning
-      >
-        {time}
-      </p>{" "}
-      <p>{unit}</p>
+    <div className="flex flex-col items-center justify-center">
+      <h1 className="text-[6vw] text-white lg:text-[7vw]">{event.name}</h1>
+      <p className="mb-36 text-[2vw] text-white lg:text-[3vw]">
+        {event.description}
+      </p>
+      <CountdownTimer targetDate={targetDate} />
     </div>
   );
 };
