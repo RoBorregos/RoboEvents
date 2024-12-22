@@ -34,8 +34,6 @@ export const Carousel = ({ events }: { events: ReactNode[] }) => {
         Date.now() - lastModification.current > AUTOSCROLL_INTERVAL
       ) {
         handleNext();
-      } else {
-        console.log(Date.now() - lastModification.current);
       }
     }, 1000);
 
