@@ -10,11 +10,15 @@ import robologo from "../../../public/images/white-logo.png";
 import { useRef } from "react";
 
 import { CountdownTimer } from "~/components/general/CountdownTimer";
+import { Carousel } from "~/components/general/Carousel";
 
 export default function Countdown() {
   // Get the default options for select components, using query params.
 
-  const ids = ["clld2iist0000lp1c61e2zmpo-1693167491895"];
+  const ids = [
+    "clld2iist0000lp1c61e2zmpo-1693167491895",
+    "cllv6t5ly0006mv087um4ho5l-1734889134333",
+  ];
 
   // Get the filtered events
   const { data: events, isLoading } = api.countdown.getEventsByIds.useQuery(
@@ -38,20 +42,14 @@ export default function Countdown() {
     currentEventIndex.current = events?.length - 1;
   }
 
-  const currentEvent = events?.[currentEventIndex.current];
+  const eventsView = events
+    ? events.map((event) => <DisplayEvent key={event.id} event={event} />)
+    : [];
 
   return (
     <Layout>
-      <main className="bg-black">
-        <section className="relative flex min-h-[100vw] flex-col overflow-hidden lg:min-h-screen">
-          <div className="z-10 mt-[45vw] text-center lg:mt-32">
-            {/* <h1 className="font-jersey_25 text-roboblue text-[13vw] leading-none lg:text-[12vw]">
-              CANDIDATES
-            </h1>
-            <p className="font-anton mt-[-2vw] text-[6vw] text-white lg:text-[3vw]">
-              By RoBorregos
-            </p> */}
-          </div>
+      <main className="relative bg-black">
+        <section className="flex min-h-[100vw] flex-col overflow-hidden lg:min-h-screen">
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
             <Image
               src={robologo}
@@ -69,11 +67,11 @@ export default function Countdown() {
             // the black fade is covering the image
           />
         </section>
-        <div className="absolute inset-20 z-30">
+        <div className="absolute left-1/2 top-1/2 z-30 w-full -translate-x-1/2">
           {isLoading ? (
             <PageTitle text="Loading..." />
-          ) : currentEvent ? (
-            <DisplayEvent event={currentEvent} />
+          ) : eventsView?.length ?? 0 > 0 ? (
+            <Carousel events={eventsView} />
           ) : (
             <PageSubtitle text="No events found" />
           )}
@@ -92,8 +90,10 @@ const DisplayEvent = ({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-[6vw] text-white lg:text-[7vw]">{event.name}</h1>
-      <p className="mb-36 text-[2vw] text-white lg:text-[3vw]">
+      <h1 className="line-clamp-1 text-[6vw] text-white lg:text-[6vw]">
+        {event.name}
+      </h1>
+      <p className="mb-36 line-clamp-2 text-[2vw] text-white lg:text-[3vw]">
         {event.description}
       </p>
       <CountdownTimer targetDate={targetDate} />
