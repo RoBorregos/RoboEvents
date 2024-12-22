@@ -26,6 +26,7 @@ import {
   EventListContainer,
   EventContainer,
 } from "~/components/general/Containers";
+import { useRouter } from "next/router";
 
 const animatedComponents = makeAnimated();
 
@@ -148,13 +149,9 @@ export default function Find() {
   // Use state for the ids to avoid undefined when re-rendering by a change in the filters.
   const [eventsIds, setEventsIds] = useState<string[] | undefined>([]);
 
-  // Refetch on first render
-  const firstRender = useRef(true);
-
-  if (firstRender.current) {
-    refetch().catch((e) => console.log(e));
-    firstRender.current = false;
-  }
+  // first refetch
+  const firstRefetch = useRef(true);
+  const router = useRouter();
 
   return (
     <Layout>
@@ -289,22 +286,48 @@ export default function Find() {
           </div>
           <div className="m-2 mb-auto mt-auto flex h-fit flex-col items-center justify-center rounded-lg bg-themebg p-2">
             <button
-              className="rounded-xl bg-green-500 p-1 text-themebg"
+              className="rounded-xl p-1 text-white"
               onClick={() => {
+                firstRefetch.current = false;
                 refetch().catch((e) => console.log(e));
               }}
             >
               Search
             </button>
           </div>
+          {(eventsIds?.length ?? 0) > 0 && (
+            <div className="m-2 mb-auto mt-auto flex h-fit flex-col items-center justify-center rounded-lg bg-themebg p-2">
+              {
+                <button
+                  className="rounded-xl p-1 text-white"
+                  onClick={() => {
+                    router
+                      .push({
+                        pathname: `/countdown`,
+                        query: { ids: eventsIds },
+                      })
+                      .catch((e) => console.log(e));
+                  }}
+                >
+                  Countdown
+                </button>
+              }
+            </div>
+          )}
         </div>
-        <DisplayEvents eventIds={eventsIds} />
+        <DisplayEvents eventIds={eventsIds} firstRefetch={firstRefetch} />
       </PageBody>
     </Layout>
   );
 }
 
-const DisplayEvents = ({ eventIds }: { eventIds: string[] | undefined }) => {
+const DisplayEvents = ({
+  eventIds,
+  firstRefetch,
+}: {
+  eventIds: string[] | undefined;
+  firstRefetch: React.RefObject<boolean>;
+}) => {
   return (
     <EventListContainer className="my-2">
       {eventIds?.length ?? 0 > 0 ? (
@@ -315,6 +338,8 @@ const DisplayEvents = ({ eventIds }: { eventIds: string[] | undefined }) => {
             </EventContainer>
           );
         })
+      ) : firstRefetch.current ? (
+        <PageSubtitle text="Set the filters and search." />
       ) : (
         <PageSubtitle text="No events found." />
       )}

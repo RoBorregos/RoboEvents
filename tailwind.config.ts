@@ -15,6 +15,9 @@ export default {
       screens: {
         xsm: "520px",
       },
+      fontFamily: {
+        digital: ["digital-7", "monospace"],
+      },
     },
   },
   plugins: [],
