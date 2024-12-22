@@ -20,6 +20,10 @@ const Layout = ({
       visibility: "organizationMember",
     },
     {
+      name: "Countdown",
+      path: "/countdown",
+    },
+    {
       name: "About",
       path: "https://github.com/RoBorregos/RoboEvents#readme",
       target: "_blank" as const,
